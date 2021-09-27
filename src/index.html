@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Ionic App</title>
+  <title>Nitr0gen Wallet</title>
 
   <base href="/" />
 
@@ -17,6 +17,30 @@
   <!-- add to homescreen for ios -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpxsYgcsNOwLov_hmtA4fHEyVUVKxtMAE",
+      authDomain: "nitr0gen.firebaseapp.com",
+      projectId: "nitr0gen",
+      storageBucket: "nitr0gen.appspot.com",
+      messagingSenderId: "154671689518",
+      appId: "1:154671689518:web:5aef3b96c8f92b6486d4bf",
+      measurementId: "G-7K19G0B5LJ"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
 </head>
 
 <body>

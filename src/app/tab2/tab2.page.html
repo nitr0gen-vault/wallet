@@ -1,17 +1,372 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 2
-    </ion-title>
+    <ion-title> Nitr0gen Wallet </ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="start" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <!-- <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
+      <ion-title size="large">Nitr0gen Wallet</ion-title>
     </ion-toolbar>
-  </ion-header>
+  </ion-header> -->
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+  <!-- <app-explore-container name="Tab 2 page"></app-explore-container> 
+  
+  [pagination]="{
+      clickable: true
+    }"-->
+  <swiper
+    #swiper
+    (swiper)="onSwiper($event)"
+    (slideChange)="onSlideChange()"
+    (slideChangeTransitionStart)="test($event);"
+    (slideChangeTransitionEnd)="test($event);"
+    [slidesPerView]="'auto'"
+    [centeredSlides]="true"
+    [loop]="true"
+    class="mySwiper"
+  >
+    <ng-template swiperSlide>
+      <ion-card class="ion-no-padding native">
+        <ion-card-content class="ion-no-padding">
+          <ion-grid>
+            <ion-row>
+              <ion-col
+                ><img src="/assets/crypto/icons/btc.svg" />
+                <qrcode
+                  [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+                  [width]="120"
+                  [errorCorrectionLevel]="'M'"
+                ></qrcode>
+              </ion-col>
+              <ion-col class="setpositon"
+                ><div>Bitcoin</div>
+                <div>10000 BTC</div></ion-col
+              >
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="tokens">
+        <ion-list [inset]="true">
+          <ion-list-header>
+            Tokens
+          </ion-list-header>
+          <!-- <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/ada.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>ADA</h2>
+              <h3>20000 ADA</h3>
+            </ion-label>
+          </ion-item> -->
+          <ion-item (click)="presentActionSheet()">
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/hns.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>HNS</h2>
+              <h3>20000 HNS</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/matic.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>MATIC</h2>
+              <h3>20000 MATIC</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/atom.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>ATOM</h2>
+              <h3>20000 ATOM</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/lend.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>LEND</h2>
+              <h3>20000 LEND</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/cred.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>CRED</h2>
+              <h3>20000 CRED</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/mith.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>MITH</h2>
+              <h3>20000 MITH</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/nav.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>NAV</h2>
+              <h3>20000 NAV</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/pura.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>PURA</h2>
+              <h3>20000 PURA</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img src="/assets/crypto/icons/qtum.svg" />
+            </ion-avatar>
+            <ion-label>
+              <h2>QTUM</h2>
+              <h3>20000 QTUM</h3>
+            </ion-label>
+          </ion-item>
+
+        </ion-list>
+      </div>
+    </ng-template>
+    <ng-template swiperSlide>
+      <ion-card class="ion-no-padding native">
+        <ion-card-content class="ion-no-padding">
+          <ion-grid>
+            <ion-row>
+              <ion-col
+                ><img src="/assets/crypto/icons/eth.svg" />
+                <qrcode
+                  [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+                  [width]="120"
+                  [errorCorrectionLevel]="'M'"
+                ></qrcode>
+              </ion-col>
+              <ion-col class="setpositon"
+                ><div>Ethereum</div>
+                <div>10000 ETH</div></ion-col
+              >
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+      <div class="tokens">
+        <ion-card>
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ada.svg" />
+            <ion-label>Card Link Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ark.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item> -->
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/atom.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/btm.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>     -->
+
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/bze.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/dot.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/eon.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>
+        </ion-card>
+      </div>
+    </ng-template>
+    <ng-template swiperSlide>
+      <ion-card class="ion-no-padding native">
+        <ion-card-content class="ion-no-padding">
+          <ion-grid>
+            <ion-row>
+              <ion-col
+                ><img src="/assets/crypto/icons/bnb.svg" />
+                <qrcode
+                  [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+                  [width]="120"
+                  [errorCorrectionLevel]="'M'"
+                ></qrcode>
+              </ion-col>
+              <ion-col class="setpositon"
+                ><div>Binance</div>
+                <div>10000 BNB</div></ion-col
+              >
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="tokens">
+        <ion-card>
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ada.svg" />
+            <ion-label>Card Link Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ark.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item> -->
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/atom.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/btm.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>     -->
+
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/bze.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/dot.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/eon.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>
+        </ion-card>
+      </div>
+    </ng-template>
+    <ng-template swiperSlide>
+      <ion-card class="ion-no-padding native">
+        <ion-card-content class="ion-no-padding">
+          <ion-grid>
+            <ion-row>
+              <ion-col
+                ><img src="/assets/crypto/icons/trx.svg" />
+                <qrcode
+                  [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+                  [width]="120"
+                  [errorCorrectionLevel]="'M'"
+                ></qrcode>
+              </ion-col>
+              <ion-col class="setpositon"
+                ><div>Tron</div>
+                <div>10000 TRX</div></ion-col
+              >
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="tokens">
+        <ion-card>
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ada.svg" />
+            <ion-label>Card Link Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/ark.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item> -->
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/atom.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+          <!-- 
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/btm.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>     -->
+
+          <ion-item href="#" class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/bze.svg" />
+            <ion-label>Card Link Item 2</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/dot.svg" />
+            <ion-label>Card Button Item 1 activated</ion-label>
+          </ion-item>
+
+          <ion-item class="ion-activated">
+            <img slot="start" src="/assets/crypto/icons/eon.svg" />
+            <ion-label>Card Button Item 2</ion-label>
+          </ion-item>
+        </ion-card>
+      </div>
+    </ng-template>
+  </swiper>
+  <!-- <button (click)="slideNext()">Next slide</button>
+  <button (click)="slidePrev()">Prev slide</button> -->
+
+  <!-- <div class="tokens">
+    <ion-card>
+      <ion-item href="#" class="ion-activated">
+        <img slot="start" src="/assets/crypto/icons/ada.svg" />
+        <ion-label>Card Link Item 1 activated</ion-label>
+      </ion-item>
+  
+
+      <ion-item class="ion-activated">
+        <img slot="start" src="/assets/crypto/icons/atom.svg" />
+        <ion-label>Card Button Item 1 activated</ion-label>
+      </ion-item>
+   
+
+      <ion-item href="#" class="ion-activated">
+        <img slot="start" src="/assets/crypto/icons/bze.svg" />
+        <ion-label>Card Link Item 2</ion-label>
+      </ion-item>
+
+      <ion-item class="ion-activated">
+        <img slot="start" src="/assets/crypto/icons/dot.svg" />
+        <ion-label>Card Button Item 1 activated</ion-label>
+      </ion-item>
+
+      <ion-item class="ion-activated">
+        <img slot="start" src="/assets/crypto/icons/eon.svg" />
+        <ion-label>Card Button Item 2</ion-label>
+      </ion-item>
+    </ion-card>
+  </div> -->
 </ion-content>

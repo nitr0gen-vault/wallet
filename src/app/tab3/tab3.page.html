@@ -1,17 +1,89 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
+    <ion-title> Settings </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <!-- <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Tab 3</ion-title>
     </ion-toolbar>
-  </ion-header>
+  </ion-header> -->
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <!-- <app-explore-container name="Tab 3 page"></app-explore-container> -->
+
+  <ion-list [inset]="true">
+    <ion-list-header> Pair Devices </ion-list-header>
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <ion-col class="ion-align-self-center" style="text-align: center;"
+            ><qrcode
+              [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+              [width]="176"
+              [errorCorrectionLevel]="'M'"
+            ></qrcode
+          ></ion-col>
+          <ion-col>
+            <ion-grid>
+              <ion-row>
+                <ion-col class="ion-align-self-center">
+                  <ion-item>
+                    <ion-select placeholder="Select Profile" disabled>
+                      <ion-select-option value="id1"
+                        >Profile Name #1</ion-select-option
+                      >
+                      <ion-select-option value="id2"
+                        >Profile Name #2</ion-select-option
+                      >
+                    </ion-select>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
+              <ion-row
+                ><ion-col class="ion-align-self-center">
+                  <ion-button
+                    expand="full"
+                    color="secondary"
+                    (click)="pairWarning()"
+                    >Open Scanner</ion-button
+                  >
+                </ion-col></ion-row
+              >
+            </ion-grid>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <div></div>
+      <div></div>
+    </ion-item>
+    <ion-list-header> Security </ion-list-header>
+    <ion-item>
+      <ion-label>Enable Two Factor Authentication</ion-label>
+      <ion-checkbox color="primary" checked slot="start"></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label>Freeze Wallet</ion-label>
+      <ion-checkbox color="primary" checked slot="start"></ion-checkbox>
+    </ion-item>
+    <ion-list-header> About Me </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Email Address</ion-label>
+      <ion-input></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Telephone Number</ion-label>
+      <ion-input></ion-input>
+    </ion-item>
+    <ion-list-header> Recovery </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Social Recovery</ion-label>
+      <ion-input type="text" name="stop"></ion-input>
+      <ion-note>
+        This person will help recovery your key access when registering a new
+        OTK.
+      </ion-note>
+    </ion-item>
+  </ion-list>
 </ion-content>

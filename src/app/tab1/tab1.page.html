@@ -1,17 +1,65 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+    <ion-title> Nitr0gen </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
+  <!-- <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
+      <ion-title size="large">Nitr0gen</ion-title>
     </ion-toolbar>
-  </ion-header>
+  </ion-header> -->
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Welcome to Nitr0gen Wallet</ion-card-title>
+      <ion-card-subtitle>A new type of wallet security</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      With Nitr0gen you have full control and access over your keys without the
+      worry of losing them. Your crypto keys do not exist at any single location
+      at rest or transit. On your device you have generated a OTK (One time key)
+      which gives you control and access. The OTK can be lost and you will still
+      be able to access your crypto keys once authenticated.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item>
+      <ion-icon name="warning" slot="start"></ion-icon>
+      <ion-label>2FA Not Enabled</ion-label>
+      <ion-button fill="outline" slot="end">Enable</ion-button>
+    </ion-item>
+
+    <ion-card-content>
+      With Two Factor Authentication all transactions will need to be confirmed
+      with a code sent via email or sms.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item>
+      <ion-icon name="warning" slot="start"></ion-icon>
+      <ion-label>Social Recovery Not enabled</ion-label>
+      <ion-button fill="outline" slot="end">Enable</ion-button>
+    </ion-item>
+
+    <ion-card-content>
+      If you were to lose all your devices OTK's your social recovery contact will help you authenticate and get control back to your crypto keys.
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-item>
+      <ion-icon name="warning" slot="start"></ion-icon>
+      <ion-label>Email Address / Telephone Missing</ion-label>      
+    </ion-item>
+
+    <ion-card-content>
+      So you have the best security over your crypto keys make sure you have provided at least one of these contact details.
+    </ion-card-content>
+  </ion-card>
+
 </ion-content>
