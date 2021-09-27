@@ -1,0 +1,7 @@
+{
+  "name": "Nitr0gen Wallet",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
