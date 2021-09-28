@@ -11,10 +11,13 @@ export class StorageService {
     return `def.${key}`;
   }
 
-  public async get(key: string): Promise<any> {
-    return JSON.parse(
-      (await Storage.get({ key: this.profileObscure(key) })).value
-    );
+  public async get(key: string, defaultValue?: any): Promise<any> {
+    const stored = (await Storage.get({ key: this.profileObscure(key) })).value;
+    if (stored) {
+      return JSON.parse(stored);
+    } else {
+      return defaultValue;
+    }
   }
 
   public async set(key: string, value: any): Promise<void> {
@@ -22,5 +25,9 @@ export class StorageService {
       key: this.profileObscure(key),
       value: JSON.stringify(value),
     });
+  }
+
+  public async reset() {
+    await Storage.clear();
   }
 }

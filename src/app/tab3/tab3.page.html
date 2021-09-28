@@ -14,13 +14,14 @@
   <!-- <app-explore-container name="Tab 3 page"></app-explore-container> -->
 
   <ion-list [inset]="true">
+    <ion-list-header> Version : {{version}} </ion-list-header>
     <ion-list-header> Pair Devices </ion-list-header>
     <ion-item>
       <ion-grid>
         <ion-row>
           <ion-col class="ion-align-self-center" style="text-align: center;"
             ><qrcode
-              [qrdata]="'0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7'"
+              [qrdata]="uuid"
               [width]="176"
               [errorCorrectionLevel]="'M'"
             ></qrcode
@@ -85,5 +86,11 @@
         OTK.
       </ion-note>
     </ion-item>
+    <br>
+    <ion-list-header color="warning"> Danger Zone (Development Mode)</ion-list-header>
+    <br>
+    <ion-button (click)="unhide()" expand="block" color="primary">Unhide All Tokens</ion-button>
+    <br>
+    <ion-button (click)="reset()" expand="block" color="danger">Reset Local Wallet</ion-button>
   </ion-list>
 </ion-content>

@@ -1,0 +1,72 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Nitr0gen Wallet </ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="start" name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-no-padding native">
+    <ion-card-content class="ion-no-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col
+            ><img
+              src="/assets/crypto/icons/{{ symbolConvert(wallet.symbol) }}.svg"
+              onerror="this.onerror=null; this.src='/assets/crypto/icons/generic.svg'"
+            />
+            <qrcode
+              [qrdata]="wallet.address"
+              [width]="120"
+              [errorCorrectionLevel]="'M'"
+            ></qrcode>
+          </ion-col>
+          <ion-col class="setpositon"
+            ><div>{{ wallet.symbol }}</div>
+            <div>10000 {{ wallet.symbol }}</div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list [inset]="true">
+    <ion-list-header> Send {{ wallet.symbol }} </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">To Address</ion-label>
+      <ion-input placeholder="0x" [(ngModel)]="address"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Amount</ion-label>
+      <ion-input type="number" [(ngModel)]="amount"></ion-input>
+    </ion-item>
+    <ion-list-header> Transaction Fee </ion-list-header>
+      <ion-segment value="medium">
+        <ion-segment-button value="low">
+          <ion-label>Slow</ion-label>
+          <ion-label>0.0001</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="medium">
+          <ion-label>Normal</ion-label>
+          <ion-label>0.001</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="heigh">
+          <ion-label>Fast</ion-label>
+          <ion-label>0.01</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    <div class="contain">
+      <ion-button (click)="send()" expand="block" color="success"
+        >Send</ion-button
+      >
+      <br />
+      <ion-button (click)="cancel()" expand="block" color="danger"
+        >Cancel</ion-button
+      >
+    </div>
+  </ion-list>
+</ion-content>

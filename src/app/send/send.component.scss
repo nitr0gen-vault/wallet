@@ -1,0 +1,31 @@
+ion-card ion-col img {
+  position: absolute;
+  top: 48px;
+  left: calc(50% - 16px);
+  width: 32px;
+}
+
+.indent {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.contain {
+  padding: 20px;
+}
+
+ion-card {
+  width: 60%;
+  margin: 10px auto;
+  text-align: center;
+  font-size: 18px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+

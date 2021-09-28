@@ -12,7 +12,19 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "es2020",
-    "lib": ["es2018", "dom"]
+    "lib": ["es2018", "dom"],
+    "paths": {
+      "crypto": ["./node_modules/crypto-browserify"],
+      "constants": ["./node_modules/constants-browserify"],
+      "http": ["./node_modules/stream-http"],
+      "https": ["./node_modules/https-browserify"],
+      "stream": ["./node_modules/stream-browserify"],
+      "buffer": ["./node_modules/buffer"],
+      "assert": ["./node_modules/assert"],
+      "process": ["./empty"],
+      "vm": ["./empty"],
+      "fs": ["./empty"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
