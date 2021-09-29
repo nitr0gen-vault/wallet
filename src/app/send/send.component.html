@@ -39,7 +39,7 @@
       <ion-label position="floating">Amount</ion-label>
       <ion-input type="number" [(ngModel)]="amount"></ion-input>
     </ion-item>
-    <ng-container *ngIf="displayFees">
+    <ng-container *ngIf="displayFees.low">
       <ion-list-header> Transaction Fee </ion-list-header>
       <ion-segment [(ngModel)]="selectedFee">
         <ion-segment-button value="low">

@@ -12,7 +12,7 @@ import { Browser } from '@capacitor/browser';
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { OtkService, Token, Wallet } from '../service/otk.service';
 import { Router } from '@angular/router';
-import { ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
+import { BTC_DECIMAL, ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
 
 // install Swiper modules
 SwiperCore.use([Pagination, Navigation]);
@@ -51,7 +51,7 @@ export class Tab2Page implements OnInit {
       switch (wallet.symbol) {
         case 'tbtc':
         case 'btc':
-          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+          return wallet.amount.dividedBy(BTC_DECIMAL).toString();
         case 'ropsten':
         case 'eth':
         case 'bnb':

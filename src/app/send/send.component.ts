@@ -6,6 +6,7 @@ import {
   ETH_DECIMAL,
   ETH_GWEI_DECIMAL,
   TRX_DECIMAL,
+  BTC_DECIMAL,
 } from '../service/nitr0gen-api.service';
 import { Browser } from '@capacitor/browser';
 import { OtkService, Wallet, Token } from '../service/otk.service';
@@ -150,9 +151,9 @@ export class SendComponent implements OnInit, OnDestroy {
 
             this.loadingController.dismiss();
             if (isTwoFa) {
-              this.getTwoFA(txSig);
+              this.getTwoFA(txSig, 'hash');
             } else {
-              this.procressSign(txSig, null);
+              this.procressSign(txSig, null, 'hash');
             }
           }
         }
@@ -161,21 +162,128 @@ export class SendComponent implements OnInit, OnDestroy {
       case 'eth':
         break;
       case 'tbnb':
+        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+          const amount = new BigNumber(
+            parseFloat(this.amount) * ETH_DECIMAL
+          ).decimalPlaces(0);
+
+          const txSig = {
+            to: this.address,
+            from: this.wallet.address,
+            amount: '0x' + amount.toString(16),
+            nonce: this.wallet.nonce,
+            chainId: 97,
+            gas: this.fees[this.selectedFee],
+          };
+
+          console.log(txSig);
+
+          this.loading = await this.loadingController.create({
+            message: 'Requesting Signature',
+          });
+
+          this.loading.present();
+
+          const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+          if (await this.noErrors(result)) {
+            const isTwoFa = result.$responses[0].twoFA;
+
+            this.loadingController.dismiss();
+            if (isTwoFa) {
+              this.getTwoFA(txSig, 'hash');
+            } else {
+              this.procressSign(txSig, null, 'hash');
+            }
+          }
+        }
         break;
       case 'bnb':
         break;
       case 'tbtc':
+        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+          const amount = new BigNumber(
+            parseFloat(this.amount) * BTC_DECIMAL
+          ).decimalPlaces(0);
+
+          const txSig = await this.nitr0api.wallet.bitcoin.createTx(
+            'test',
+            this.wallet.address,
+            this.address,
+            amount.toNumber()
+          );
+
+          console.log(txSig);
+
+          this.loading = await this.loadingController.create({
+            message: 'Requesting Signature',
+          });
+
+          this.loading.present();
+
+          const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+          if (await this.noErrors(result)) {
+            const isTwoFa = result.$responses[0].twoFA;
+
+            this.loadingController.dismiss();
+            if (isTwoFa) {
+              this.getTwoFA(txSig, 'hash');
+            } else {
+              this.procressSign(txSig, null, 'hash');
+            }
+          }
+        }
         break;
       case 'btc':
         break;
       case 'trx':
         break;
       case 'niles':
+        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+          const amount = new BigNumber(
+            parseFloat(this.amount) * TRX_DECIMAL
+          ).decimalPlaces(0);
+
+          const tx = await this.nitr0api.wallet.tron.createTx(
+            'niles',
+            this.address,
+            this.wallet.address,
+            amount.toNumber()
+          );
+
+          const txSig = {
+            to: this.address,
+            amount,
+            hex: tx,
+          };
+
+          console.log(txSig);
+
+          this.loading = await this.loadingController.create({
+            message: 'Requesting Signature',
+          });
+
+          this.loading.present();
+
+          const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+          if (await this.noErrors(result)) {
+            const isTwoFa = result.$responses[0].twoFA;
+
+            this.loadingController.dismiss();
+            if (isTwoFa) {
+              this.getTwoFA(txSig, 'txid');
+            } else {
+              this.procressSign(txSig, null, 'txid');
+            }
+          }
+        }
         break;
     }
   }
 
-  public getTwoFA(txSig: any): Promise<void> {
+  public getTwoFA(txSig: any, outputHash: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const alert = await this.alertController.create({
         header: 'Confirm 2FA',
@@ -198,7 +306,7 @@ export class SendComponent implements OnInit, OnDestroy {
           {
             text: 'Confirm',
             handler: async (a) => {
-              this.procressSign(txSig, a.twoFA);
+              this.procressSign(txSig, a.twoFA, outputHash);
             },
           },
         ],
@@ -208,7 +316,11 @@ export class SendComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async procressSign(txSig: any, twoFa: string | null) {
+  private async procressSign(
+    txSig: any,
+    twoFa: string | null,
+    outputHash: string
+  ) {
     this.loading = await this.loadingController.create({
       message: 'Generating Signatures',
     });
@@ -227,16 +339,22 @@ export class SendComponent implements OnInit, OnDestroy {
       // results we need to ass responses
       this.loading.message = 'Sending to network';
 
-      const reply = (await this.otk.sendTransaction(
+      let reply = (await this.otk.sendTransaction(
         rawTxHex,
         this.network
       )) as any;
+
+      // Naughty hack until fixed
+      if(this.network.indexOf("btc") !== -1) {
+        reply = reply.tx;
+      }
+
       console.log(reply);
 
       this.loadingController.dismiss();
 
-      if (reply.hash) {
-        await this.transactionCompleted(reply.hash);
+      if (reply[outputHash]) {
+        await this.transactionCompleted(reply[outputHash]);
       } else {
         await this.networkError(reply);
       }
@@ -378,7 +496,7 @@ export class SendComponent implements OnInit, OnDestroy {
       switch (wallet.symbol) {
         case 'tbtc':
         case 'btc':
-          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+          return wallet.amount.dividedBy(BTC_DECIMAL).toString();
         case 'ropsten':
         case 'eth':
         case 'bnb':

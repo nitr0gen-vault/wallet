@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
+import { BTC_DECIMAL, ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
 import { Wallet, OtkService } from '../service/otk.service';
 
 @Component({
@@ -46,7 +46,7 @@ export class StatusComponent implements OnInit {
       switch (wallet.symbol) {
         case 'tbtc':
         case 'btc':
-          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+          return wallet.amount.dividedBy(BTC_DECIMAL).toString();
         case 'ropsten':
         case 'eth':
         case 'bnb':
