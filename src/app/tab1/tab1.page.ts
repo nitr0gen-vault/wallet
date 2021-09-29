@@ -9,7 +9,7 @@ import { StorageService } from '../service/storage.service';
 })
 export class Tab1Page {
   constructor(
-    private storage: StorageService,
+    public storage: StorageService,
     private otkService: OtkService
   ) {}
 

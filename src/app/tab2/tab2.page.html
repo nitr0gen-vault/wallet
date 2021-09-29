@@ -2,7 +2,7 @@
   <ion-toolbar>
     <ion-title> Nitr0gen Wallet </ion-title>
     <ion-buttons slot="end">
-      <ion-button>
+      <ion-button (click)="refresh()">
         <ion-icon slot="start" name="refresh"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -52,7 +52,7 @@
               </ion-col>
               <ion-col class="setpositon"
                 ><h1 class="trunc">{{wallet.symbol.toUpperCase()}}</h1>
-                <div>{{wallet.amount ? wallet.amount.toString() : 0}}</div>
+                <div>{{getAmount(wallet)}}</div>
                 <div class="smaller">{{wallet.address}}</div>
               </ion-col>
             </ion-row>

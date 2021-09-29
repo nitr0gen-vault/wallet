@@ -26,7 +26,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
+  <ion-card *ngIf="!storage.settings.security.twofa">
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>2FA Not Enabled</ion-label>
@@ -39,7 +39,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
+  <ion-card *ngIf="!storage.settings.recovery.email">
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>Social Recovery Not enabled</ion-label>
@@ -51,7 +51,7 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-card>
+  <ion-card *ngIf="!storage.settings.general.email || !storage.settings.general.telephone">
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>Email Address / Telephone Missing</ion-label>      
