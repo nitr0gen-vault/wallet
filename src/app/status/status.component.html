@@ -1,0 +1,65 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Nitr0gen Wallet </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-no-padding native">
+    <ion-card-content class="ion-no-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col class="qr"
+            ><img
+              src="/assets/crypto/icons/{{ symbolConvert(wallet.symbol) }}.svg"
+            />
+            <qrcode
+              [qrdata]="wallet.address"
+              [width]="120"
+              [errorCorrectionLevel]="'M'"
+            ></qrcode>
+          </ion-col>
+          <ion-col class="setpositon"
+            ><h1 class="trunc">{{ wallet.symbol.toUpperCase() }}</h1>
+            <div>{{ wallet.amount ? wallet.amount.toString() : 0 }}</div>
+            <div class="smaller">{{ wallet.address }}</div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list [inset]="true">
+    <ion-list-header> Network Information</ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Name</ion-label>
+      <ion-input readonly value="PrePrelaunch Network"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Nodes</ion-label>
+      <ion-input readonly value="4"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Fragment Threshold</ion-label>
+      <ion-input readonly value="3"></ion-input>
+    </ion-item>
+    <ion-item class="litdent">
+      <ion-label>Cloud Act Secure</ion-label>
+      <ion-icon name="cloud-done-outline" color="success"></ion-icon>
+    </ion-item>
+    <ion-list-header> Access Control </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Direct OTK</ion-label>
+      <ion-input readonly value="1"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Restricted OTK</ion-label>
+      <ion-input readonly value="0"></ion-input>
+    </ion-item>
+    <ion-list-header> Fragment Hash </ion-list-header>
+    <ion-item class="indent" *ngFor="let hash of wallet.hashes; let i = index">
+      <ion-label position="floating">Fragment #{{ i }}</ion-label>
+      <ion-input readonly value="{{ hash }}"></ion-input>
+    </ion-item>
+  </ion-list>
+</ion-content>
