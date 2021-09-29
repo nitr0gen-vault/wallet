@@ -5,6 +5,7 @@ import {
   FeePricing,
   ETH_DECIMAL,
   ETH_GWEI_DECIMAL,
+  TRX_DECIMAL,
 } from '../service/nitr0gen-api.service';
 import { Browser } from '@capacitor/browser';
 import { OtkService, Wallet, Token } from '../service/otk.service';
@@ -370,6 +371,24 @@ export class SendComponent implements OnInit, OnDestroy {
 
   public cancel() {
     this.router.navigate(['tabs', 'tab2']);
+  }
+
+  getAmount(wallet: Wallet): string {
+    if (wallet.amount) {
+      switch (wallet.symbol) {
+        case 'tbtc':
+        case 'btc':
+          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+        case 'ropsten':
+        case 'eth':
+        case 'bnb':
+        case 'tbnb':
+          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+        case 'tron':
+        case 'niles':
+          return wallet.amount.dividedBy(TRX_DECIMAL).toString();
+      }
+    }
   }
 
   // This function is everywhere

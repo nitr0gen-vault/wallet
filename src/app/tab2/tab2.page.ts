@@ -64,6 +64,7 @@ export class Tab2Page implements OnInit {
     }
   }
 
+  
   symbolConvert(symbol: string) {
     switch (symbol) {
       case 'tbtc':
