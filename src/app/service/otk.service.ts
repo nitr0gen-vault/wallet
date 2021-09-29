@@ -329,21 +329,43 @@ export class OtkService {
         //this.wallet.forEach(async (wallet) => {
         // Get Balance
         const balances = await this.fetchBalance(wallet.address, wallet.symbol);
-        wallet.amount = balances.balance;        
-        wallet.nonce = ++balances.nonce;
-
+        wallet.amount = balances.balance;
+        wallet.nonce = balances.nonce;
 
         // Procress Tokens
         if (balances.tokens && wallet.tokens) {
+          // This loops local and updated
           wallet.tokens.forEach((token) => {
             const rToken = balances.tokens.find(
               (rToken) =>
                 token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
             );
             token.amount = rToken.balance;
-            token.decimal = rToken.decimal
+            token.decimal = rToken.decimal;
+          });
+
+          // Doing it like this is inefficient
+
+          // Now we need to loop remote and add? (or other way around)
+          balances.tokens.forEach((token) => {
+            const localToken = wallet.tokens.find(
+              (rToken) =>
+                token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+            );            
+            if (!localToken) {
+              // Add
+              wallet.tokens.push({
+                amount: token.balance,
+                decimal: token.balance,
+                name: token.name,
+                symbol: token.symbol,
+                contract: token.address,
+              });
+            }
           });
         }
+        // Update local with latest
+        await this.storage.set('wallet', await this.wallet);
       } //);
       this.fetching = false;
     }

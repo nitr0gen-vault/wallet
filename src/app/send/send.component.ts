@@ -390,6 +390,10 @@ export class SendComponent implements OnInit, OnDestroy {
 
       this.loadingController.dismiss();
 
+      // Clear
+      this.amount = '';
+      this.address = '';
+
       const txId = outputHash(reply);
       txId
         ? await this.transactionCompleted(txId)
@@ -544,7 +548,7 @@ export class SendComponent implements OnInit, OnDestroy {
         default:
           if (this.token) {
             // Need to ship decimals / store
-            return this.token.amount.dividedBy(this.token.decimal).toString();
+            return this.token.amount.toString();
           }
       }
     }

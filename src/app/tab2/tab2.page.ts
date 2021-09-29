@@ -7,12 +7,17 @@ import {
 import { SwiperComponent } from 'swiper/angular';
 import { ClipboardService } from 'ngx-clipboard';
 import { Browser } from '@capacitor/browser';
+import { BigNumber } from 'bignumber.js';
 
 // import Swiper core and required modules
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { OtkService, Token, Wallet } from '../service/otk.service';
 import { Router } from '@angular/router';
-import { BTC_DECIMAL, ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
+import {
+  BTC_DECIMAL,
+  ETH_DECIMAL,
+  TRX_DECIMAL,
+} from '../service/nitr0gen-api.service';
 
 // install Swiper modules
 SwiperCore.use([Pagination, Navigation]);
@@ -45,14 +50,17 @@ export class Tab2Page implements OnInit {
 
   async refresh() {
     this.refreshing = true;
-    console.log("START");  
     this.wallets = await this.otk.refreshWallets();
-    console.log("END");
     this.refreshing = false;
   }
 
   getAmount(wallet: Wallet): string {
     if (wallet.amount) {
+
+      // From memory will primitive
+      if (!BigNumber.isBigNumber(wallet.amount)) {
+        wallet.amount = new BigNumber(wallet.amount);
+      }
       switch (wallet.symbol) {
         case 'tbtc':
         case 'btc':
@@ -69,7 +77,6 @@ export class Tab2Page implements OnInit {
     }
   }
 
-  
   symbolConvert(symbol: string) {
     switch (symbol) {
       case 'tbtc':
