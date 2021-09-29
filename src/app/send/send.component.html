@@ -1,11 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title> Nitr0gen Wallet </ion-title>
-    <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon slot="start" name="refresh"></ion-icon>
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -14,10 +9,9 @@
     <ion-card-content class="ion-no-padding">
       <ion-grid>
         <ion-row>
-          <ion-col
+          <ion-col class="qr"
             ><img
               src="/assets/crypto/icons/{{ symbolConvert(wallet.symbol) }}.svg"
-              onerror="this.onerror=null; this.src='/assets/crypto/icons/generic.svg'"
             />
             <qrcode
               [qrdata]="wallet.address"
@@ -26,8 +20,9 @@
             ></qrcode>
           </ion-col>
           <ion-col class="setpositon"
-            ><div>{{ wallet.symbol }}</div>
-            <div>10000 {{ wallet.symbol }}</div>
+            ><h1 class="trunc">{{ wallet.symbol.toUpperCase() }}</h1>
+            <div>{{ wallet.amount ? wallet.amount.toString() : 0 }}</div>
+            <div class="smaller">{{ wallet.address }}</div>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -44,21 +39,31 @@
       <ion-label position="floating">Amount</ion-label>
       <ion-input type="number" [(ngModel)]="amount"></ion-input>
     </ion-item>
-    <ion-list-header> Transaction Fee </ion-list-header>
-      <ion-segment value="medium">
+    <ng-container *ngIf="displayFees">
+      <ion-list-header> Transaction Fee </ion-list-header>
+      <ion-segment [(ngModel)]="selectedFee">
         <ion-segment-button value="low">
           <ion-label>Slow</ion-label>
-          <ion-label>0.0001</ion-label>
+          <ion-label>{{ displayFees.low }} {{ feeSymbol }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="medium">
           <ion-label>Normal</ion-label>
-          <ion-label>0.001</ion-label>
+          <ion-label>{{ displayFees.medium }} {{ feeSymbol }}</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="heigh">
+        <ion-segment-button value="high">
           <ion-label>Fast</ion-label>
-          <ion-label>0.01</ion-label>
+          <ion-label>{{ displayFees.high }} {{ feeSymbol }}</ion-label>
         </ion-segment-button>
       </ion-segment>
+    </ng-container>
+    <!-- <ion-item class="indent" *ngIf="storage.settings.security.twofa">
+      <ion-label position="floating">Two Factor Auth</ion-label>
+      <ion-input
+        type="number"
+        [(ngModel)]="twofa"
+        [disabled]="twoPending"
+      ></ion-input>
+    </ion-item> -->
     <div class="contain">
       <ion-button (click)="send()" expand="block" color="success"
         >Send</ion-button

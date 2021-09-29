@@ -288,8 +288,12 @@ class Tron {
   }
 }
 
-interface FeePricing {
+export interface FeePricing {
   low: number;
   medium: number;
   high: number;
 }
+
+export const TRX_DECIMAL = 1000000;
+export const ETH_DECIMAL = 1000000000000000000;
+export const ETH_GWEI_DECIMAL = 1000000000;

@@ -19,6 +19,7 @@ export interface Wallet {
   symbol: string;
   nId: string;
   address: string;
+  nonce: number;
   hashes: string[];
   tokens: Token[];
   amount?: BigNumber;
@@ -37,6 +38,8 @@ export enum Nitr0gen {
   Onboard = 'df9e4e242c58cc6a03ca1679f007c7a04cad72c97fdb74bdfe9a4e1688077a79',
   Create = 'c278818b9f10d5f18381a711827e344d583f7ecf446cdfb4b92016b308838a72',
   DiffConsensus = 'a9711259f9c0322c6eb1cca4c0baf1b460266be79c5c0f78cf1602a8476e0744',
+  Preflight = '2a43dc59d4cfa0f8a5ad143247db41dd6524cc9e1a18fd7a00f14d0ca7bbac62',
+  Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b'
 }
 
 @Injectable({
@@ -243,6 +246,7 @@ export class OtkService {
       nId: results.key.nId,
       address: results.key.address,
       hashes: results.hashes,
+      nonce: 0,
       tokens,
     };
   }
@@ -312,6 +316,7 @@ export class OtkService {
         // Get Balance
         const balances = await this.fetchBalance(wallet.address, wallet.symbol);
         wallet.amount = balances.balance;
+        wallet.nonce = balances.nonce;
 
         // Procress Tokens
         if (balances.tokens && wallet.tokens) {
@@ -332,6 +337,7 @@ export class OtkService {
     symbol: string
   ): Promise<{
     balance: BigNumber;
+    nonce?: number;
     tokens?: any[];
   }> {
     let result;
@@ -350,12 +356,14 @@ export class OtkService {
         );
         return {
           balance: new BigNumber(result.balance),
+          nonce: result.nonce,
           tokens: result.tokens,
         };
       case 'tbnb':
         result = await this.nitr0api.wallet.binance.getAddress('test', address);
         return {
           balance: new BigNumber(result.balance),
+          nonce: result.nonce,
           tokens: result.tokens,
         };
       case 'niles':
@@ -447,5 +455,115 @@ export class OtkService {
 
     // Sign Transaction & Send
     return await txHandler.signTransaction(txBody, key);
+  }
+
+  public async updateIdentity(entry: string, cValue: any): Promise<any> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Onboard,
+        $entry: `update.${entry}`,
+        $i: {
+          otk: {
+            $stream: key.identity,
+            [entry]: cValue,
+          },
+        },
+      },
+      $sigs: {},
+    };
+
+    // Sign Transaction & Send
+    const tx = await txHandler.signTransaction(txBody, key);
+    return await lastValueFrom(this.nitr0api.security(tx));
+  }
+
+  public async preflight(nId: string, signtx: unknown): Promise<any> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Preflight,
+        $i: {
+          owner: {
+            $stream: key.identity,
+            signtx,
+          },
+        },
+        $o: {
+          key: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return await this.nitr0api.wallet.preflight(
+      await txHandler.signTransaction(txBody, key)
+    );
+  }
+
+  public async sign(
+    nId: string,
+    signtx: unknown,
+    twoFA: string
+  ): Promise<IBaseTransaction> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: any = {
+      $territoriality: 'b83b7b3c559e1aa636391dadda9fc60ba330cddc',
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Sign,
+        $i: {
+          owner: {
+            $stream: key.identity,
+            twoFA,
+            signtx,
+          },
+        },
+        $o: {
+          key: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return await this.nitr0api.wallet.sign(
+      await txHandler.signTransaction(txBody, key)
+    );
+  }
+
+  public async sendTransaction<T>(tx: string, network: string): Promise<T> {
+    switch (network) {
+      case 'btc':
+        console.log('to implement');
+      case 'tbtc':
+        return this.nitr0api.wallet.bitcoin.sendTransaction('test', tx);
+      case 'tbnb':
+        return this.nitr0api.wallet.binance.sendTransaction('test', tx);
+      case 'ropsten':
+        return this.nitr0api.wallet.ethereum.sendTransaction('test', tx);
+      case 'shasta':
+        return this.nitr0api.wallet.tron.sendTransaction('shasta', tx);
+      case 'niles':
+        return this.nitr0api.wallet.tron.sendTransaction('niles', tx);
+    }
   }
 }
