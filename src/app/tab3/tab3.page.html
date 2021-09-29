@@ -24,11 +24,14 @@
               [qrdata]="uuid"
               [width]="176"
               [errorCorrectionLevel]="'M'"
-            ></qrcode
-          ></ion-col>
+            ></qrcode>
+            <ion-button expand="full" color="secondary" (click)="copyCode()"
+              >Copy Code</ion-button
+            ></ion-col
+          >
           <ion-col>
             <ion-grid>
-              <ion-row>
+              <!-- <ion-row>
                 <ion-col class="ion-align-self-center">
                   <ion-item>
                     <ion-select placeholder="Select Profile" disabled>
@@ -41,7 +44,7 @@
                     </ion-select>
                   </ion-item>
                 </ion-col>
-              </ion-row>
+              </ion-row> -->
               <ion-row
                 ><ion-col class="ion-align-self-center">
                   <ion-button
@@ -49,6 +52,16 @@
                     color="secondary"
                     (click)="pairWarning()"
                     >Open Scanner</ion-button
+                  >
+                  <ion-item style="margin-top:90px">
+                    <ion-label position="floating">Pair Code</ion-label>
+                    <ion-input></ion-input>
+                  </ion-item>
+                  <ion-button
+                    expand="full"
+                    color="secondary"
+                    (click)="pairWarning()"
+                    >Pair Code</ion-button
                   >
                 </ion-col></ion-row
               >

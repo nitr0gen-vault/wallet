@@ -127,14 +127,27 @@ export class SendComponent implements OnInit, OnDestroy {
             parseFloat(this.amount) * ETH_DECIMAL
           ).decimalPlaces(0);
 
-          const txSig = {
-            to: this.address,
-            from: this.wallet.address,
-            amount: '0x' + amount.toString(16),
-            nonce: this.wallet.nonce,
-            chainId: 3,
-            gas: this.fees[this.selectedFee],
-          };
+          let txSig;
+          if (this.token) {
+            txSig = {
+              to: this.address,
+              from: this.wallet.address,
+              amount: '0x' + amount.toString(16),
+              nonce: this.wallet.nonce,
+              chainId: 3,
+              gas: this.fees[this.selectedFee],
+              contractAddress: this.token.contract,
+            };
+          } else {
+            txSig = {
+              to: this.address,
+              from: this.wallet.address,
+              amount: '0x' + amount.toString(16),
+              nonce: this.wallet.nonce,
+              chainId: 3,
+              gas: this.fees[this.selectedFee],
+            };
+          }
 
           console.log(txSig);
 
@@ -151,9 +164,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
             this.loadingController.dismiss();
             if (isTwoFa) {
-              this.getTwoFA(txSig, 'hash');
+              this.getTwoFA(txSig, (r) => {
+                return r.hash;
+              });
             } else {
-              this.procressSign(txSig, null, 'hash');
+              this.procressSign(txSig, null, (r) => {
+                return r.hash;
+              });
             }
           }
         }
@@ -167,14 +184,27 @@ export class SendComponent implements OnInit, OnDestroy {
             parseFloat(this.amount) * ETH_DECIMAL
           ).decimalPlaces(0);
 
-          const txSig = {
-            to: this.address,
-            from: this.wallet.address,
-            amount: '0x' + amount.toString(16),
-            nonce: this.wallet.nonce,
-            chainId: 97,
-            gas: this.fees[this.selectedFee],
-          };
+          let txSig;
+          if (this.token) {
+            txSig = {
+              to: this.address,
+              from: this.wallet.address,
+              amount: '0x' + amount.toString(16),
+              nonce: this.wallet.nonce,
+              chainId: 97,
+              gas: this.fees[this.selectedFee],
+              contractAddress: this.token.contract,
+            };
+          } else {
+            txSig = {
+              to: this.address,
+              from: this.wallet.address,
+              amount: '0x' + amount.toString(16),
+              nonce: this.wallet.nonce,
+              chainId: 97,
+              gas: this.fees[this.selectedFee],
+            };
+          }
 
           console.log(txSig);
 
@@ -191,9 +221,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
             this.loadingController.dismiss();
             if (isTwoFa) {
-              this.getTwoFA(txSig, 'hash');
+              this.getTwoFA(txSig, (r) => {
+                return r.hash;
+              });
             } else {
-              this.procressSign(txSig, null, 'hash');
+              this.procressSign(txSig, null, (r) => {
+                return r.hash;
+              });
             }
           }
         }
@@ -228,9 +262,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
             this.loadingController.dismiss();
             if (isTwoFa) {
-              this.getTwoFA(txSig, 'hash');
+              this.getTwoFA(txSig, (r) => {
+                return r.tx.hash;
+              });
             } else {
-              this.procressSign(txSig, null, 'hash');
+              this.procressSign(txSig, null, (r) => {
+                return r.tx.hash;
+              });
             }
           }
         }
@@ -273,9 +311,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
             this.loadingController.dismiss();
             if (isTwoFa) {
-              this.getTwoFA(txSig, 'txid');
+              this.getTwoFA(txSig, (r) => {
+                return r.txid;
+              });
             } else {
-              this.procressSign(txSig, null, 'txid');
+              this.procressSign(txSig, null, (r) => {
+                return r.txid;
+              });
             }
           }
         }
@@ -283,7 +325,7 @@ export class SendComponent implements OnInit, OnDestroy {
     }
   }
 
-  public getTwoFA(txSig: any, outputHash: string): Promise<void> {
+  public getTwoFA(txSig: any, outputHash: Function): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const alert = await this.alertController.create({
         header: 'Confirm 2FA',
@@ -319,7 +361,7 @@ export class SendComponent implements OnInit, OnDestroy {
   private async procressSign(
     txSig: any,
     twoFa: string | null,
-    outputHash: string
+    outputHash: Function
   ) {
     this.loading = await this.loadingController.create({
       message: 'Generating Signatures',
@@ -344,20 +386,14 @@ export class SendComponent implements OnInit, OnDestroy {
         this.network
       )) as any;
 
-      // Naughty hack until fixed
-      if(this.network.indexOf("btc") !== -1) {
-        reply = reply.tx;
-      }
-
       console.log(reply);
 
       this.loadingController.dismiss();
 
-      if (reply[outputHash]) {
-        await this.transactionCompleted(reply[outputHash]);
-      } else {
-        await this.networkError(reply);
-      }
+      const txId = outputHash(reply);
+      txId
+        ? await this.transactionCompleted(txId)
+        : await this.networkError(reply);
     }
   }
 
@@ -505,8 +541,14 @@ export class SendComponent implements OnInit, OnDestroy {
         case 'tron':
         case 'niles':
           return wallet.amount.dividedBy(TRX_DECIMAL).toString();
+        default:
+          if (this.token) {
+            // Need to ship decimals / store
+            return this.token.amount.dividedBy(this.token.decimal).toString();
+          }
       }
     }
+    return '0';
   }
 
   // This function is everywhere

@@ -26,6 +26,7 @@ SwiperCore.use([Pagination, Navigation]);
   encapsulation: ViewEncapsulation.None,
 })
 export class Tab2Page implements OnInit {
+  refreshing = false;
   @ViewChild('swiper', { static: false }) swiper?: SwiperComponent;
 
   constructor(
@@ -43,7 +44,11 @@ export class Tab2Page implements OnInit {
   }
 
   async refresh() {
-    this.wallets = await this.otk.getWallets();
+    this.refreshing = true;
+    console.log("START");  
+    this.wallets = await this.otk.refreshWallets();
+    console.log("END");
+    this.refreshing = false;
   }
 
   getAmount(wallet: Wallet): string {

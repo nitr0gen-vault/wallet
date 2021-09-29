@@ -30,7 +30,7 @@
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>2FA Not Enabled</ion-label>
-      <ion-button fill="outline" slot="end">Enable</ion-button>
+      <ion-button fill="outline" slot="end" [routerLink]="['/tabs','tab3']">Enable</ion-button>
     </ion-item>
 
     <ion-card-content>
@@ -43,7 +43,7 @@
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>Social Recovery Not enabled</ion-label>
-      <ion-button fill="outline" slot="end">Enable</ion-button>
+      <ion-button fill="outline" slot="end" [routerLink]="['/tabs','tab3']">Enable</ion-button>
     </ion-item>
 
     <ion-card-content>
@@ -55,6 +55,7 @@
     <ion-item>
       <ion-icon name="warning" slot="start"></ion-icon>
       <ion-label>Email Address / Telephone Missing</ion-label>      
+      <ion-button fill="outline" slot="end" [routerLink]="['/tabs','tab3']">Enable</ion-button>
     </ion-item>
 
     <ion-card-content>

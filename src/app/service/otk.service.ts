@@ -26,6 +26,7 @@ export interface Wallet {
 }
 
 export interface Token {
+  decimal?: number;
   name: string;
   contract: string;
   symbol: string;
@@ -39,7 +40,7 @@ export enum Nitr0gen {
   Create = 'c278818b9f10d5f18381a711827e344d583f7ecf446cdfb4b92016b308838a72',
   DiffConsensus = 'a9711259f9c0322c6eb1cca4c0baf1b460266be79c5c0f78cf1602a8476e0744',
   Preflight = '2a43dc59d4cfa0f8a5ad143247db41dd6524cc9e1a18fd7a00f14d0ca7bbac62',
-  Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b'
+  Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b',
 }
 
 @Injectable({
@@ -304,6 +305,15 @@ export class OtkService {
     return this.wallet;
   }
 
+  public async refreshWallets(): Promise<Wallet[]> {
+    if (!this.wallet) {
+      this.wallet = (await this.storage.get('wallet', [])) as Wallet[];
+    }
+    // Let this one do it's thing in the background
+    await this.fetchBalances();
+    return this.wallet;
+  }
+
   public async setWallets(): Promise<void> {
     await this.storage.set('wallet', await this.getWallets());
   }
@@ -312,22 +322,29 @@ export class OtkService {
   private async fetchBalances() {
     if (!this.fetching) {
       this.fetching = true;
-      this.wallet.forEach(async (wallet) => {
+      for (let i = 0; i < this.wallet.length; i++) {
+        const wallet = this.wallet[i];
+
+        //}
+        //this.wallet.forEach(async (wallet) => {
         // Get Balance
         const balances = await this.fetchBalance(wallet.address, wallet.symbol);
-        wallet.amount = balances.balance;
-        wallet.nonce = balances.nonce;
+        wallet.amount = balances.balance;        
+        wallet.nonce = ++balances.nonce;
+
 
         // Procress Tokens
         if (balances.tokens && wallet.tokens) {
           wallet.tokens.forEach((token) => {
-            token.amount = balances.tokens.find(
+            const rToken = balances.tokens.find(
               (rToken) =>
                 token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-            ).balance;
+            );
+            token.amount = rToken.balance;
+            token.decimal = rToken.decimal
           });
         }
-      });
+      } //);
       this.fetching = false;
     }
   }

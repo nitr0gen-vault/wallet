@@ -6,6 +6,7 @@ import { StorageService } from '../service/storage.service';
 import { environment } from '../../environments/environment';
 import { OtkService } from '../service/otk.service';
 import { Device } from '@capacitor/device';
+import { ClipboardService } from 'ngx-clipboard';
 
 @Component({
   selector: 'app-tab3',
@@ -19,14 +20,19 @@ export class Tab3Page implements OnInit {
     private alertController: AlertController,
     public storage: StorageService,
     private otk: OtkService,
-    private platform: Platform
+    private platform: Platform,
+    private clippy: ClipboardService
   ) {}
 
   async ngOnInit() {
     this.uuid = (await Device.getId()).uuid;
   }
 
-  public async blurSave(type: string) {    
+  public copyCode() {
+    this.clippy.copy(this.uuid);
+  }
+
+  public async blurSave(type: string) {
     switch (type) {
       case 'security':
         this.otk.updateIdentity('security', {
