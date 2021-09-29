@@ -19,7 +19,7 @@
     <ion-item>
       <ion-grid>
         <ion-row>
-          <ion-col class="ion-align-self-center" style="text-align: center;"
+          <ion-col class="ion-align-self-center" style="text-align: center"
             ><qrcode
               [qrdata]="uuid"
               [width]="176"
@@ -62,35 +62,61 @@
     <ion-list-header> Security </ion-list-header>
     <ion-item>
       <ion-label>Enable Two Factor Authentication</ion-label>
-      <ion-checkbox color="primary" checked slot="start"></ion-checkbox>
+      <ion-checkbox
+        (ionChange)="blurSave('security')"
+        color="primary"
+        [(ngModel)]="storage.settings.security.twofa"
+        slot="start"
+      ></ion-checkbox>
     </ion-item>
     <ion-item>
       <ion-label>Freeze Wallet</ion-label>
-      <ion-checkbox color="primary" checked slot="start"></ion-checkbox>
+      <ion-checkbox
+        (ionChange)="blurSave('security')"
+        color="primary"
+        [(ngModel)]="storage.settings.security.freeze"
+        slot="start"
+      ></ion-checkbox>
     </ion-item>
     <ion-list-header> About Me </ion-list-header>
     <ion-item class="indent">
       <ion-label position="floating">Email Address</ion-label>
-      <ion-input></ion-input>
+      <ion-input
+        (ionBlur)="blurSave('email')"
+        [(ngModel)]="storage.settings.general.email"
+      ></ion-input>
     </ion-item>
     <ion-item class="indent">
       <ion-label position="floating">Telephone Number</ion-label>
-      <ion-input></ion-input>
+      <ion-input
+        (ionBlur)="blurSave('telephone')"
+        [(ngModel)]="storage.settings.general.telephone"
+      ></ion-input>
     </ion-item>
     <ion-list-header> Recovery </ion-list-header>
     <ion-item class="indent">
       <ion-label position="floating">Social Recovery</ion-label>
-      <ion-input type="text" name="stop"></ion-input>
+      <ion-input
+        (ionBlur)="blurSave('recovery')"
+        type="text"
+        [(ngModel)]="storage.settings.recovery.email"
+      ></ion-input>
       <ion-note>
         This person will help recovery your key access when registering a new
         OTK.
       </ion-note>
     </ion-item>
-    <br>
-    <ion-list-header color="warning"> Danger Zone (Development Mode)</ion-list-header>
-    <br>
-    <ion-button (click)="unhide()" expand="block" color="primary">Unhide All Tokens</ion-button>
-    <br>
-    <ion-button (click)="reset()" expand="block" color="danger">Reset Local Wallet</ion-button>
+    <br />
+    <ion-list-header color="warning">
+      Danger Zone (Development Mode)</ion-list-header
+    >
+    <br />
+    <ion-button (click)="unhide()" expand="block" color="primary"
+      >Unhide All Tokens</ion-button
+    >
+    <br />
+    <ion-button (click)="reset()" expand="block" color="danger"
+      >Reset Local Wallet</ion-button
+    >
   </ion-list>
 </ion-content>

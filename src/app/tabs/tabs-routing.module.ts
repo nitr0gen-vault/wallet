@@ -24,7 +24,12 @@ const routes: Routes = [
           import('../tab3/tab3.module').then((m) => m.Tab3PageModule),
       },
       {
-        path: ':id/:token',
+        path: 'status/:id',
+        loadChildren: () =>
+          import('../status/status.module').then((m) => m.StatusComponentModule),
+      },
+      {
+        path: 'send/:id/:token',
         loadChildren: () =>
           import('../send/send.module').then((m) => m.SendComponentModule),
       },

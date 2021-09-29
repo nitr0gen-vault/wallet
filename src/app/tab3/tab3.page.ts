@@ -12,18 +12,45 @@ import { Device } from '@capacitor/device';
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
 })
-export class Tab3Page implements OnInit{
+export class Tab3Page implements OnInit {
   version = environment.version;
   uuid: string;
   constructor(
     private alertController: AlertController,
-    private storage: StorageService,
+    public storage: StorageService,
     private otk: OtkService,
     private platform: Platform
   ) {}
 
   async ngOnInit() {
-    this.uuid = (await Device.getId()).uuid
+    this.uuid = (await Device.getId()).uuid;
+  }
+
+  public async blurSave(type: string) {    
+    switch (type) {
+      case 'security':
+        this.otk.updateIdentity('security', {
+          twoFA: this.storage.settings.security.twofa,
+          freeze: this.storage.settings.security.freeze,
+        });
+        break;
+      case 'recovery':
+        this.otk.updateIdentity(
+          'recovery',
+          this.storage.settings.recovery.email
+        );
+        break;
+      case 'email':
+        this.otk.updateIdentity('email', this.storage.settings.general.email);
+        break;
+      case 'telephone':
+        this.otk.updateIdentity(
+          'telephone',
+          this.storage.settings.general.telephone
+        );
+        break;
+    }
+    this.storage.save();
   }
 
   public async reset() {
@@ -37,10 +64,10 @@ export class Tab3Page implements OnInit{
 
   public async unhide() {
     const wallets = await this.otk.getWallets();
-    wallets.forEach(wallet => {
-      wallet.tokens?.forEach(token => {
+    wallets.forEach((wallet) => {
+      wallet.tokens?.forEach((token) => {
         token.hidden = false;
-      })
+      });
     });
     await this.otk.setWallets();
   }
