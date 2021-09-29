@@ -12,6 +12,7 @@ import { Browser } from '@capacitor/browser';
 import SwiperCore, { Pagination, Navigation } from 'swiper';
 import { OtkService, Token, Wallet } from '../service/otk.service';
 import { Router } from '@angular/router';
+import { ETH_DECIMAL, TRX_DECIMAL } from '../service/nitr0gen-api.service';
 
 // install Swiper modules
 SwiperCore.use([Pagination, Navigation]);
@@ -39,6 +40,28 @@ export class Tab2Page implements OnInit {
   wallets: any[];
   async ngOnInit() {
     this.wallets = await this.otk.getWallets();
+  }
+
+  async refresh() {
+    this.wallets = await this.otk.getWallets();
+  }
+
+  getAmount(wallet: Wallet): string {
+    if (wallet.amount) {
+      switch (wallet.symbol) {
+        case 'tbtc':
+        case 'btc':
+          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+        case 'ropsten':
+        case 'eth':
+        case 'bnb':
+        case 'tbnb':
+          return wallet.amount.dividedBy(ETH_DECIMAL).toString();
+        case 'tron':
+        case 'niles':
+          return wallet.amount.dividedBy(TRX_DECIMAL).toString();
+      }
+    }
   }
 
   symbolConvert(symbol: string) {
@@ -72,14 +95,21 @@ export class Tab2Page implements OnInit {
           text: 'Send',
           icon: 'share',
           handler: () => {
-            this.router.navigate(['tabs', wallet.nId, wallet.symbol]);
+            this.router.navigate(['tabs', 'send', wallet.nId, wallet.symbol]);
           },
         },
         {
-          text: 'View',
+          text: 'Block explorer',
           icon: 'open',
           handler: async () => {
             await this.openExplorer(wallet);
+          },
+        },
+        {
+          text: 'Storage Status',
+          icon: 'information-circle-outline',
+          handler: async () => {
+            await this.router.navigate(['tabs', 'status', wallet.nId]);
           },
         },
         {
@@ -121,7 +151,7 @@ export class Tab2Page implements OnInit {
           text: 'Send',
           icon: 'share',
           handler: () => {
-            this.router.navigate(['tabs', wallet.nId, symbol]);
+            this.router.navigate(['tabs', 'send', wallet.nId, symbol]);
           },
         },
         {
