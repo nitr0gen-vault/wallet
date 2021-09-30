@@ -50,6 +50,7 @@ export class OtkService {
   private otk: Otk;
   private wallet: Wallet[];
   private loading: HTMLIonLoadingElement;
+  public pnt = "";
 
   //wallet$: Subject<Wallet> = new Subject();
 
@@ -77,7 +78,8 @@ export class OtkService {
           const result = await lastValueFrom(
             this.nitr0api.create(
               this.otk.key.pub.pkcs8pem,
-              await this.onboard()
+              await this.onboard(),
+              this.pnt
             )
           );
 

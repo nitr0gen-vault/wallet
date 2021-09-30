@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.nitr0gen.prelaunch;
 
 import com.getcapacitor.BridgeActivity;
 import android.content.res.Configuration;

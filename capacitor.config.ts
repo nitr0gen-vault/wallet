@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.nitr0gen.prelaunch',
   appName: 'Nitr0gen Wallet',
   webDir: 'www',
   bundledWebRuntime: false

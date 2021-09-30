@@ -29,11 +29,13 @@ export class Nitr0genApiService {
    */
   public create(
     otkPem: string,
-    ntx: IBaseTransaction
+    ntx: IBaseTransaction,
+    pnt = "" 
   ): Observable<{ nId: string }> {
     return this.http.post<{ nId: string }>(`${environment.api.serverUrl}/otk`, {
       otpk: otkPem,
       ntx,
+      pnt
     });
   }
 
