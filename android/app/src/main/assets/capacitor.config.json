@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "Nitr0gen Wallet",
+	"webDir": "www",
+	"bundledWebRuntime": false
+}
