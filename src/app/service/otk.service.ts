@@ -254,6 +254,10 @@ export class OtkService {
     };
   }
 
+  public async getDeviceUuid() {
+    return (await Device.getId()).uuid
+  }
+
   private async generateOtk(): Promise<Otk> {
     const kh = new KeyHandler();
     console.log('Generating new OTK');
@@ -273,7 +277,7 @@ export class OtkService {
           otk: {
             publicKey: key.key.pub.pkcs8pem,
             type: key.type,
-            uuid: (await Device.getId()).uuid,
+            uuid: await this.getDeviceUuid(),
           },
         },
       },
@@ -685,4 +689,32 @@ export class OtkService {
     // Sign Transaction & Send
     return await txHandler.signTransaction(txBody, {...key, identity:"otk"});
   }
+
+  public async pair(uuid:string, otpk: string): Promise<object> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Onboard,
+        $entry: 'newdevice',
+        $i: {
+          otk: {
+            $stream: key.identity,
+            publicKey: otpk,
+            type: key.type,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return lastValueFrom(this.nitr0api.otpkApprove(await txHandler.signTransaction(txBody, key), uuid));
+    
+  }
+
 }

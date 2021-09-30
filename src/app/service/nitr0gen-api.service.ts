@@ -30,12 +30,35 @@ export class Nitr0genApiService {
   public create(
     otkPem: string,
     ntx: IBaseTransaction,
-    pnt = "" 
+    pnt = ''
   ): Observable<{ nId: string }> {
     return this.http.post<{ nId: string }>(`${environment.api.serverUrl}/otk`, {
       otpk: otkPem,
       ntx,
-      pnt
+      pnt,
+    });
+  }
+
+  public otpk(uuid: string): Observable<Object> {
+    return this.http.post(`${environment.api.serverUrl}/otk/public`, {
+      uuid,
+    });
+  }
+
+  public otpkApprove(ntx: IBaseTransaction, uuid: string): Observable<Object> {
+    return this.http.post(`${environment.api.serverUrl}/otk/public/approve`, {
+      ntx,
+      uuid,
+    });
+  }
+
+  public pairCheck(): Observable<Object> {
+    return this.http.get(`${environment.api.serverUrl}/otk/public/pending`);
+  }
+
+  public pairConfirm(accepted: boolean): Observable<Object> {
+    return this.http.post(`${environment.api.serverUrl}/otk/public/pending`, {
+      accepted,
     });
   }
 
@@ -79,7 +102,7 @@ class Wallet {
       this.http.post<any>(`${environment.api.serverUrl}/wallet/`, {
         key: {
           symbol,
-          nId
+          nId,
         },
         ntx,
       })

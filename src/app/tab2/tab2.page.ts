@@ -1,7 +1,10 @@
+import { App } from '@capacitor/app';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
   ActionSheetController,
   AlertController,
+  LoadingController,
+  Platform,
   ToastController,
 } from '@ionic/angular';
 import { SwiperComponent } from 'swiper/angular';
@@ -16,8 +19,11 @@ import { Router } from '@angular/router';
 import {
   BTC_DECIMAL,
   ETH_DECIMAL,
+  Nitr0genApiService,
   TRX_DECIMAL,
 } from '../service/nitr0gen-api.service';
+import { lastValueFrom } from 'rxjs';
+import { StorageService } from '../service/storage.service';
 
 // install Swiper modules
 SwiperCore.use([Pagination, Navigation]);
@@ -40,7 +46,12 @@ export class Tab2Page implements OnInit {
     private clippy: ClipboardService,
     private toast: ToastController,
     private alert: AlertController,
-    public otk: OtkService
+    public otk: OtkService,
+    private nitr0gen: Nitr0genApiService,
+    private alertController: AlertController,
+    private loadingController: LoadingController,
+    private storage: StorageService,
+    private platform: Platform
   ) {}
 
   wallets: any[];
@@ -49,15 +60,101 @@ export class Tab2Page implements OnInit {
   }
 
   async refresh() {
-    this.refreshing = true;
-    this.wallets = await this.otk.refreshWallets();
     // TODO Refresh settings? (in case of multiple devices)
-    this.refreshing = false;
+    this.refreshing = true;
+    const pair = (await lastValueFrom(this.nitr0gen.pairCheck())) as any;
+    if (pair) {
+      const alert = await this.alertController.create({
+        header: 'Incoming Pair',
+        message: `Pairing your profile with ${pair.uuid}`,
+        buttons: [
+          {
+            text: 'Cancel',
+            handler: async () => {
+              const response = (await lastValueFrom(
+                this.nitr0gen.pairConfirm(false)
+              )) as any;
+              console.log(response);
+            },
+          },
+          {
+            text: 'Confirm',
+            handler: async () => {
+              const response = (await lastValueFrom(
+                this.nitr0gen.pairConfirm(true)
+              )) as any;
+
+              console.log(response);
+
+              if (response.keys) {
+                // We had keys moved so lets cache ourselves
+                // Going to copy paste code from settings for now
+                const loading = await this.loadingController.create({
+                  message: 'Refreshing Wallets',
+                });
+                await loading.present();
+                //this.loading.message = 'Refreshing Wallets';
+                this.otk.forceKeyIdentity(pair.nId);
+
+                // get wallets from api
+                const cache = await this.nitr0gen.wallet.cache(
+                  await this.otk.getDeviceUuid()
+                );
+                const tmpWallets: Wallet[] = [];
+
+                // We are now on a different uuid (possibly)
+                // Do we need to add them on the api side onto the new uuid
+                // Duplicates doesn't matter as its the signing side that protects everything
+
+                if (cache.keys) {
+                  for (let i = 0; i < cache.keys.length; i++) {
+                    const wallet = cache.keys[i];
+                    tmpWallets.push({
+                      address: wallet.address,
+                      symbol: wallet.symbol,
+                      nId: wallet.nId,
+                      nonce: 0,
+                      hashes: ['recovered account'], // Need to fetch
+                      tokens: [], // Should auto import
+                    });
+                  }
+                  await this.otk.recacheWallets(tmpWallets);
+                  console.log('Wallet Recached');
+
+                  // settings
+                  this.storage.settings.general.email = cache.settings.email;
+                  this.storage.settings.recovery = cache.settings.recovery;
+                  this.storage.settings.security = cache.settings.security;
+                  this.storage.settings.general.telephone =
+                    cache.settings.telephone;
+
+                  await this.storage.save();
+                  await loading.dismiss();
+                  this.restart();
+                }
+              }
+            },
+          },
+        ],
+      });
+      await alert.present();
+      this.refreshing = false;
+    } else {
+      this.wallets = await this.otk.refreshWallets();
+      this.refreshing = false;
+    }
+  }
+
+  public restart() {
+    if (this.platform.is('mobileweb')) {
+      window.location.href = '/';
+    } else {
+      App.exitApp();
+    }
   }
 
   getAmount(wallet: Wallet): string {
     if (wallet.amount) {
-
       // From memory will primitive
       if (!BigNumber.isBigNumber(wallet.amount)) {
         wallet.amount = new BigNumber(wallet.amount);

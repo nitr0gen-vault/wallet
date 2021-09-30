@@ -55,7 +55,7 @@
                   >
                   <ion-item style="margin-top: 90px">
                     <ion-label position="floating">Pair Code</ion-label>
-                    <ion-input></ion-input>
+                    <ion-input [(ngModel)]="pairCode"></ion-input>
                   </ion-item>
                   <ion-button
                     expand="full"
@@ -119,19 +119,22 @@
         OTK.
       </ion-note>
     </ion-item>
-    <ion-button (click)="socialRecovery()" expand="block" color="success"
+    <br>
+    <ion-button (click)="socialRecovery()" expand="block" color="success" class="slim-down"
       >Initiate Social Recovery</ion-button
     >
     <br />
+    <ion-list-header color="success"> Tweak Area</ion-list-header>
+    <br />
+    <ion-button (click)="unhide()" expand="block" color="primary" class="slim-down"
+      >Unhide All Tokens</ion-button
+    >
+    <br>
     <ion-list-header color="warning">
       Danger Zone (Development Mode)</ion-list-header
     >
     <br />
-    <ion-button (click)="unhide()" expand="block" color="primary"
-      >Unhide All Tokens</ion-button
-    >
-    <br />
-    <ion-button (click)="reset()" expand="block" color="danger"
+    <ion-button (click)="reset()" expand="block" color="danger" class="slim-down"
       >Reset Local Wallet</ion-button
     >
   </ion-list>

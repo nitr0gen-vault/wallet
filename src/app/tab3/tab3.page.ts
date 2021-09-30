@@ -18,6 +18,8 @@ import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 export class Tab3Page implements OnInit {
   version = environment.version;
   uuid: string;
+  pairCode: string;
+
   constructor(
     private alertController: AlertController,
     public storage: StorageService,
@@ -155,8 +157,11 @@ export class Tab3Page implements OnInit {
                           const cache = await this.nitr0gen.wallet.cache(
                             c.uuid
                           );
-                          console.log(cache);
                           const tmpWallets: Wallet[] = [];
+
+                          // We are now on a different uuid (possibly)
+                          // Do we need to add them on the api side onto the new uuid
+                          // Duplicates doesn't matter as its the signing side that protects everything
 
                           if (cache.keys) {
                             for (let i = 0; i < cache.keys.length; i++) {
@@ -250,24 +255,41 @@ export class Tab3Page implements OnInit {
   }
 
   async pairWarning() {
-    const alert = await this.alertController.create({
-      header: 'Confirmation',
-      message:
-        'The device that you scan will lose access to its current wallets and gain access to yours.',
-      buttons: [
-        {
-          text: 'Cancel',
-          role: 'cancel',
-        },
-        {
-          text: 'Confirm',
-          handler: () => {
-            console.log('Confirm Okay');
+    if (this.pairCode) {
+      const alert = await this.alertController.create({
+        header: 'Confirmation',
+        message:
+          'The device that you scan will gain access to yours.',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
           },
-        },
-      ],
-    });
+          {
+            text: 'Confirm',
+            handler: async () => {
+              const response = (await lastValueFrom(
+                this.nitr0gen.otpk(this.pairCode)
+              )) as any;
 
-    await alert.present();
+              if (response.otpk) {
+                const result = await this.otk.pair(
+                  this.pairCode,
+                  response.otpk
+                );
+                console.log(result);
+                const alert = await this.alertController.create({
+                  header: 'Pair Complete',
+                  message: 'New device can now change profile to this wallet.',
+                });
+                await alert.present();
+              }
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    }
   }
 }
