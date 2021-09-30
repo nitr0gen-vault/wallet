@@ -51,6 +51,7 @@ export class Tab2Page implements OnInit {
   async refresh() {
     this.refreshing = true;
     this.wallets = await this.otk.refreshWallets();
+    // TODO Refresh settings? (in case of multiple devices)
     this.refreshing = false;
   }
 

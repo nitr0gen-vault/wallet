@@ -152,25 +152,40 @@ export class Tab3Page implements OnInit {
                           this.otk.forceKeyIdentity(nId.nId);
 
                           // get wallets from api
-                          const wallets = await this.nitr0gen.wallet.cache(
+                          const cache = await this.nitr0gen.wallet.cache(
                             c.uuid
                           );
+                          console.log(cache);
                           const tmpWallets: Wallet[] = [];
 
-                          for (let i = 0; i < wallets.length; i++) {
-                            const wallet = wallets[i];
-                            tmpWallets.push({
-                              address: wallet.address,
-                              symbol: wallet.symbol,
-                              nId: wallet.nId,
-                              nonce: 0,
-                              hashes: ['recovered account'], // Need to fetch
-                              tokens: [], // Should auto import
-                            });
+                          if (cache.keys) {
+                            for (let i = 0; i < cache.keys.length; i++) {
+                              const wallet = cache.keys[i];
+                              tmpWallets.push({
+                                address: wallet.address,
+                                symbol: wallet.symbol,
+                                nId: wallet.nId,
+                                nonce: 0,
+                                hashes: ['recovered account'], // Need to fetch
+                                tokens: [], // Should auto import
+                              });
+                            }
+                            await this.otk.recacheWallets(tmpWallets);
+                            console.log('Wallet Recached');
+
+                            // settings
+                            this.storage.settings.general.email =
+                              cache.settings.email;
+                            this.storage.settings.recovery =
+                              cache.settings.recovery;
+                            this.storage.settings.security =
+                              cache.settings.security;
+                            this.storage.settings.general.telephone =
+                              cache.settings.telephone;
+
+                            await this.storage.save();
+                            this.restart();
                           }
-                          await this.otk.recacheWallets(tmpWallets);
-                          console.log('Wallet Recached');
-                          // Do we need to "reload"
                         }
                         this.loading.dismiss();
                       } else {
@@ -182,7 +197,7 @@ export class Tab3Page implements OnInit {
               });
 
               await alert.present();
-            }else{
+            } else {
               const alert = await this.alertController.create({
                 header: 'Unknown Unique Id',
                 message: `${c.uuid} was not found`,
@@ -213,6 +228,10 @@ export class Tab3Page implements OnInit {
 
   public async reset() {
     await this.storage.reset();
+    this.restart();
+  }
+
+  public restart() {
     if (this.platform.is('mobileweb')) {
       window.location.href = '/';
     } else {
