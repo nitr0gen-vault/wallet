@@ -39,6 +39,12 @@ export class Nitr0genApiService {
     });
   }
 
+  public uuid(uuid: string): Observable<Object> {
+    return this.http.post(`${environment.api.serverUrl}/otk/uuid`, {
+      uuid,
+    });
+  }
+
   public recovery(ntx: IBaseTransaction): Observable<Object> {
     return this.http.post(`${environment.api.serverUrl}/otk/recovery`, {
       ntx,
@@ -76,6 +82,14 @@ class Wallet {
           nId
         },
         ntx,
+      })
+    );
+  }
+
+  public async cache(uuid: string): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(`${environment.api.serverUrl}/wallet/cache`, {
+        uuid,
       })
     );
   }

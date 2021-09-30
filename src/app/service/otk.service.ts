@@ -6,7 +6,7 @@ import {
   IBaseTransaction,
 } from '@activeledger/sdk';
 import { Device } from '@capacitor/device';
-import { Injectable } from '@angular/core';
+import { Injectable, Output } from '@angular/core';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { StorageService } from './storage.service';
 import { Nitr0genApiService } from './nitr0gen-api.service';
@@ -50,7 +50,7 @@ export class OtkService {
   private otk: Otk;
   private wallet: Wallet[];
   private loading: HTMLIonLoadingElement;
-  public pnt = "";
+  public pnt = '';
 
   //wallet$: Subject<Wallet> = new Subject();
 
@@ -316,6 +316,12 @@ export class OtkService {
     return this.wallet;
   }
 
+  public async recacheWallets(wallet: Wallet[]): Promise<void> {
+    this.wallet = wallet;    
+    await this.setWallets();
+    //await this.refreshWallets();
+  }
+
   public async setWallets(): Promise<void> {
     await this.storage.set('wallet', await this.getWallets());
   }
@@ -353,7 +359,7 @@ export class OtkService {
             const localToken = wallet.tokens.find(
               (rToken) =>
                 token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-            );            
+            );
             if (!localToken) {
               // Add
               wallet.tokens.push({
@@ -434,6 +440,12 @@ export class OtkService {
       // No need to wait
       this.storage.set('otk', this.otk);
     }
+  }
+
+  public forceKeyIdentity(ident: string) {
+    this.otk.identity = ident;
+    // No need to wait
+    this.storage.set('otk', this.otk);
   }
 
   private async keyCreate(
@@ -606,5 +618,71 @@ export class OtkService {
       case 'niles':
         return this.nitr0api.wallet.tron.sendTransaction('niles', tx);
     }
+  }
+
+  public async recoveryPreflight(nId: string): Promise<IBaseTransaction> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Onboard,
+        $entry: 'recovery.preflight',
+        $i: {
+          otk: {
+            publicKey: key.key.pub.pkcs8pem,
+            type: key.type,
+          },
+        },
+        $o: {
+          recovery: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: true,
+    };
+
+    // Sign Transaction & Send
+    return await txHandler.signTransaction(txBody, {...key, identity:"otk"});
+  }
+
+  public async recoveryPreValidate(
+    nId: string,
+    yourCode: string,
+    socialCode: string
+  ): Promise<IBaseTransaction> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Onboard,
+        $entry: 'recovery.validate',
+        $i: {
+          otk: {
+            publicKey: key.key.pub.pkcs8pem,
+            type: key.type,
+            yourCode,
+            socialCode,
+          },
+        },
+        $o: {
+          recovery: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: true,
+    };
+
+    // Sign Transaction & Send
+    return await txHandler.signTransaction(txBody, {...key, identity:"otk"});
   }
 }

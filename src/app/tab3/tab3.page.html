@@ -53,7 +53,7 @@
                     (click)="pairWarning()"
                     >Open Scanner</ion-button
                   >
-                  <ion-item style="margin-top:90px">
+                  <ion-item style="margin-top: 90px">
                     <ion-label position="floating">Pair Code</ion-label>
                     <ion-input></ion-input>
                   </ion-item>
@@ -119,6 +119,9 @@
         OTK.
       </ion-note>
     </ion-item>
+    <ion-button (click)="socialRecovery()" expand="block" color="success"
+      >Initiate Social Recovery</ion-button
+    >
     <br />
     <ion-list-header color="warning">
       Danger Zone (Development Mode)</ion-list-header
