@@ -36,6 +36,20 @@ export class Tab3Page implements OnInit {
 
   async ngOnInit() {
     this.uuid = (await Device.getId()).uuid;
+
+    const closeElement = document.getElementById('closeBarcode');
+    closeElement.onclick = () => {
+      if (BarcodeScanner) {
+        const angularElement = document.getElementById('angular');
+        const barcodeElement = document.getElementById('barcode');
+        BarcodeScanner.showBackground();
+        BarcodeScanner.stopScan();
+        barcodeElement.style.display = 'none';
+        angularElement.style.display = 'block';
+        // document.body.style.background = '';
+        document.body.style.opacity = '1';
+      }
+    };
   }
 
   public copyCode() {
@@ -264,18 +278,28 @@ export class Tab3Page implements OnInit {
 
   public async scanner() {
     const status = await BarcodeScanner.checkPermission({ force: true });
+    // const status = {
+    //   granted: true,
+    // };
 
     if (status.granted) {
+      const angularElement = document.getElementById('angular');
+      const barcodeElement = document.getElementById('barcode');
+
       BarcodeScanner.hideBackground();
-      document.body.style.opacity = '0.2';
+      // document.body.style.opacity = '0.2';
       document.body.style.background = 'transparent';
+      angularElement.style.display = 'none';
+      barcodeElement.style.display = 'flex';
       const result = await BarcodeScanner.startScan({
         targetedFormats: [SupportedFormat.QR_CODE],
       });
 
       // if the result has content
       if (result.hasContent) {
-        document.body.style.background = '';
+        barcodeElement.style.display = 'none';
+        angularElement.style.display = 'block';
+        // document.body.style.background = '';
         document.body.style.opacity = '1';
         this.pairCode = result.content;
       }

@@ -1,50 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Nitr0gen Wallet</title>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Nitr0gen Wallet</title>
+    <base href="/" />
 
-  <base href="/" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
 
-  <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="msapplication-tap-highlight" content="no" />
+    <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
-  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+    <!-- add to homescreen for ios -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-  <!-- add to homescreen for ios -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
 
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-analytics.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-  
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDpxsYgcsNOwLov_hmtA4fHEyVUVKxtMAE",
-      authDomain: "nitr0gen.firebaseapp.com",
-      projectId: "nitr0gen",
-      storageBucket: "nitr0gen.appspot.com",
-      messagingSenderId: "154671689518",
-      appId: "1:154671689518:web:5aef3b96c8f92b6486d4bf",
-      measurementId: "G-7K19G0B5LJ"
-    };
-  
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
-</head>
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyDpxsYgcsNOwLov_hmtA4fHEyVUVKxtMAE",
+        authDomain: "nitr0gen.firebaseapp.com",
+        projectId: "nitr0gen",
+        storageBucket: "nitr0gen.appspot.com",
+        messagingSenderId: "154671689518",
+        appId: "1:154671689518:web:5aef3b96c8f92b6486d4bf",
+        measurementId: "G-7K19G0B5LJ",
+      };
 
-<body>
-  <app-root></app-root>
-</body>
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
+  </head>
 
+  <body>
+    <app-root id="angular"></app-root>
+
+    <div id="barcode" class="barcode-container">
+      <div class="barcode-scanner--area--container">
+        <div class="square surround-cover">
+          <div class="barcode-scanner--area--outer surround-cover">
+            <div class="barcode-scanner--area--inner"></div>
+          </div>
+        </div>
+        <div class="relative">
+          <svg
+            id="closeBarcode"
+            xmlns="http://www.w3.org/2000/svg"
+            class="ionicon"
+            viewBox="0 0 512 512"
+          >
+            <title>Close Circle</title>
+            <path
+              d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z"
+              fill="none"
+              stroke="currentColor"
+              stroke-miterlimit="10"
+              stroke-width="32"
+            />
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="32"
+              d="M320 320L192 192M192 320l128-128"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
