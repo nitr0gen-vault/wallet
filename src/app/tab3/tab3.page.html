@@ -48,9 +48,10 @@
               <ion-row
                 ><ion-col class="ion-align-self-center">
                   <ion-button
+                    [style.visibility]="canScan() ? 'visible' : 'hidden'"
                     expand="full"
                     color="secondary"
-                    (click)="pairWarning()"
+                    (click)="scanner()"
                     >Open Scanner</ion-button
                   >
                   <ion-item style="margin-top: 90px">
@@ -119,22 +120,34 @@
         OTK.
       </ion-note>
     </ion-item>
-    <br>
-    <ion-button (click)="socialRecovery()" expand="block" color="success" class="slim-down"
+    <br />
+    <ion-button
+      (click)="socialRecovery()"
+      expand="block"
+      color="success"
+      class="slim-down"
       >Initiate Social Recovery</ion-button
     >
     <br />
     <ion-list-header color="success"> Tweak Area</ion-list-header>
     <br />
-    <ion-button (click)="unhide()" expand="block" color="primary" class="slim-down"
+    <ion-button
+      (click)="unhide()"
+      expand="block"
+      color="primary"
+      class="slim-down"
       >Unhide All Tokens</ion-button
     >
-    <br>
+    <br />
     <ion-list-header color="warning">
       Danger Zone (Development Mode)</ion-list-header
     >
     <br />
-    <ion-button (click)="reset()" expand="block" color="danger" class="slim-down"
+    <ion-button
+      (click)="reset()"
+      expand="block"
+      color="danger"
+      class="slim-down"
       >Reset Local Wallet</ion-button
     >
   </ion-list>

@@ -1,3 +1,7 @@
+import {
+  BarcodeScanner,
+  SupportedFormat,
+} from '@capacitor-community/barcode-scanner';
 import { Component, OnInit } from '@angular/core';
 import { App } from '@capacitor/app';
 import { LoadingController, Platform } from '@ionic/angular';
@@ -254,12 +258,35 @@ export class Tab3Page implements OnInit {
     await this.otk.setWallets();
   }
 
+  public canScan() {
+    return !this.platform.is('mobileweb');
+  }
+
+  public async scanner() {
+    const status = await BarcodeScanner.checkPermission({ force: true });
+
+    if (status.granted) {
+      BarcodeScanner.hideBackground();
+      document.body.style.opacity = '0.2';
+      document.body.style.background = 'transparent';
+      const result = await BarcodeScanner.startScan({
+        targetedFormats: [SupportedFormat.QR_CODE],
+      });
+
+      // if the result has content
+      if (result.hasContent) {
+        document.body.style.background = '';
+        document.body.style.opacity = '1';
+        this.pairCode = result.content;
+      }
+    }
+  }
+
   async pairWarning() {
     if (this.pairCode) {
       const alert = await this.alertController.create({
         header: 'Confirmation',
-        message:
-          'The device that you scan will gain access to yours.',
+        message: 'The device that you scan will gain access to yours.',
         buttons: [
           {
             text: 'Cancel',
