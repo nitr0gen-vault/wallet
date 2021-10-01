@@ -23,6 +23,7 @@ export interface Wallet {
   hashes: string[];
   tokens: Token[];
   amount?: BigNumber;
+  hidden?: boolean;
 }
 
 export interface Token {

@@ -31,78 +31,80 @@
     class="mySwiper"
   >
     <!-- <ng-template *ngFor="let wallet of (otk.getWallets() | async)"> -->
-    <ng-template *ngFor="let wallet of wallets" swiperSlide>
-      <ion-card class="ion-no-padding native">
-        <ion-icon
-          (click)="presentKebabSheet(wallet)"
-          class="kebab"
-          name="ellipsis-vertical-sharp"
-        ></ion-icon>
-        <ion-card-content class="ion-no-padding">
-          <ion-grid>
-            <ion-row>
-              <ion-col class="qr"
-                ><img
-                  src="/assets/crypto/icons/{{symbolConvert(wallet.symbol)}}.svg"
-                />
-                <qrcode
-                  [qrdata]="wallet.address"
-                  [width]="120"
-                  [errorCorrectionLevel]="'M'"
-                ></qrcode>
-              </ion-col>
-              <ion-col class="setpositon"
-                ><h1 class="trunc">{{wallet.symbol.toUpperCase()}}</h1>
-                <div>{{getAmount(wallet)}}</div>
-                <div class="smaller">{{wallet.address}}</div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </ion-card-content>
-      </ion-card>
+    <ng-container *ngFor="let wallet of wallets">
+      <ng-template *ngIf="!wallet.hidden" swiperSlide>
+        <ion-card class="ion-no-padding native">
+          <ion-icon
+            (click)="presentKebabSheet(wallet)"
+            class="kebab"
+            name="ellipsis-vertical-sharp"
+          ></ion-icon>
+          <ion-card-content class="ion-no-padding">
+            <ion-grid>
+              <ion-row>
+                <ion-col class="qr"
+                  ><img
+                    src="/assets/crypto/icons/{{symbolConvert(wallet.symbol)}}.svg"
+                  />
+                  <qrcode
+                    [qrdata]="wallet.address"
+                    [width]="120"
+                    [errorCorrectionLevel]="'M'"
+                  ></qrcode>
+                </ion-col>
+                <ion-col class="setpositon"
+                  ><h1 class="trunc">{{wallet.symbol.toUpperCase()}}</h1>
+                  <div>{{getAmount(wallet)}}</div>
+                  <div class="smaller">{{wallet.address}}</div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-card-content>
+        </ion-card>
 
-      <div class="tokens" *ngIf="wallet.tokens">
-        <ion-list [inset]="true">
-          <ion-list-header> Tokens </ion-list-header>
-          <ng-container *ngFor="let token of wallet.tokens">
-            <ion-item
-              (click)="presentActionSheet(wallet, token, token.symbol.toLowerCase())"
-              *ngIf="!token.hidden"
-            >
+        <div class="tokens" *ngIf="wallet.tokens">
+          <ion-list [inset]="true">
+            <ion-list-header> Tokens </ion-list-header>
+            <ng-container *ngFor="let token of wallet.tokens">
+              <ion-item
+                (click)="presentActionSheet(wallet, token, token.symbol.toLowerCase())"
+                *ngIf="!token.hidden"
+              >
+                <ion-avatar slot="start">
+                  <img
+                    src="/assets/crypto/icons/{{token.symbol.toLowerCase()}}.svg"
+                    (error)="symbolIconError($event)"
+                  />
+                </ion-avatar>
+                <ion-label>
+                  <h2>{{token.name}}</h2>
+                  <h3 *ngIf="token.amount === undefined">
+                    <ion-skeleton-text
+                      animated
+                      style="width: 80%"
+                    ></ion-skeleton-text>
+                  </h3>
+                  <h3 *ngIf="token.amount !== undefined">
+                    {{token.amount ? token.amount.toString() : 0}}
+                    {{token.symbol}}
+                  </h3>
+                </ion-label>
+              </ion-item>
+            </ng-container>
+            <ion-item (click)="addToken(wallet)">
               <ion-avatar slot="start">
-                <img
-                  src="/assets/crypto/icons/{{token.symbol.toLowerCase()}}.svg"
-                  (error)="symbolIconError($event)"
-                />
+                <ion-icon
+                  name="add-circle-outline"
+                  style="font-size: 40px"
+                ></ion-icon>
               </ion-avatar>
               <ion-label>
-                <h2>{{token.name}}</h2>
-                <h3 *ngIf="token.amount === undefined">
-                  <ion-skeleton-text
-                    animated
-                    style="width: 80%"
-                  ></ion-skeleton-text>
-                </h3>
-                <h3 *ngIf="token.amount !== undefined">
-                  {{token.amount ? token.amount.toString() : 0}}
-                  {{token.symbol}}
-                </h3>
+                <h2>Add Custom token</h2>
               </ion-label>
             </ion-item>
-          </ng-container>
-          <ion-item (click)="addToken(wallet)">
-            <ion-avatar slot="start">
-              <ion-icon
-                name="add-circle-outline"
-                style="font-size: 40px"
-              ></ion-icon>
-            </ion-avatar>
-            <ion-label>
-              <h2>Add Custom token</h2>
-            </ion-label>
-          </ion-item>
-        </ion-list>
-      </div>
-    </ng-template>
+          </ion-list>
+        </div>
+      </ng-template>
+    </ng-container>
   </swiper>
 </ion-content>
