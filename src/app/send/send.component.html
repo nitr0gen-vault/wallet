@@ -12,7 +12,7 @@
           <ion-col class="qr"
             ><img
               src="/assets/crypto/icons/{{ symbolConvert(wallet.symbol) }}.svg"
-              onerror="this.onerror=null; this.src='/assets/crypto/icons/generic.svg'"
+              (error)="symbolIconError($event)"
             />
             <qrcode
               [qrdata]="wallet.address"

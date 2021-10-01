@@ -72,7 +72,7 @@
               <ion-avatar slot="start">
                 <img
                   src="/assets/crypto/icons/{{token.symbol.toLowerCase()}}.svg"
-                  onerror="this.onerror=null; this.src='/assets/crypto/icons/generic.svg'"
+                  (error)="symbolIconError($event)"
                 />
               </ion-avatar>
               <ion-label>

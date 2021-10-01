@@ -570,4 +570,9 @@ export class SendComponent implements OnInit, OnDestroy {
         return symbol;
     }
   }
+
+  symbolIconError($event) {  
+    $event.srcElement.src='/assets/crypto/icons/generic.svg';
+  }
+
 }

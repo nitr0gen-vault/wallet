@@ -145,6 +145,10 @@ export class Tab2Page implements OnInit {
     }
   }
 
+  symbolIconError($event) {  
+    $event.srcElement.src='/assets/crypto/icons/generic.svg';
+  }
+
   public restart() {
     if (this.platform.is('mobileweb')) {
       window.location.href = '/';

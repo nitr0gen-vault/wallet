@@ -34,6 +34,18 @@ ion-toolbar {
   --opacity: 0.7;
 }
 
+body {
+  overflow: hidden;
+  min-width: 480px;
+  max-width: auto;
+}
+html {
+  overflow: hidden;
+  min-width: 480px;
+  max-width: auto;
+  min-height: 568px;
+}
+
 .barcode-container {
   display: none;
   // display: flex;
