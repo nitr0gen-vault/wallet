@@ -40,6 +40,10 @@
   max-width: 130px;
 }
 
+.swiper-slide::-webkit-scrollbar {
+  display:none;
+}
+
 .swiper-slide {
   width: 60%;
   width: 75%;
