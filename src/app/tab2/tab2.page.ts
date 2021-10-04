@@ -24,6 +24,7 @@ import {
 } from '../service/nitr0gen-api.service';
 import { lastValueFrom } from 'rxjs';
 import { StorageService } from '../service/storage.service';
+import { WalletConnectService } from '../service/wallet-connect.service';
 
 // install Swiper modules
 SwiperCore.use([Pagination, Navigation]);
@@ -51,13 +52,14 @@ export class Tab2Page implements OnInit {
     private alertController: AlertController,
     private loadingController: LoadingController,
     private storage: StorageService,
-    private platform: Platform
+    private platform: Platform,
+    private walletConnect: WalletConnectService
   ) {}
 
   wallets: any[];
   async ngOnInit() {
     this.wallets = await this.otk.getWallets();
-  }
+  }  
 
   async refresh() {
     // TODO Refresh settings? (in case of multiple devices)

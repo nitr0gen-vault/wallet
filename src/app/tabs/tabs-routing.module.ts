@@ -34,6 +34,11 @@ const routes: Routes = [
           import('../send/send.module').then((m) => m.SendComponentModule),
       },
       {
+        path: 'wc',
+        loadChildren: () =>
+          import('../wallet-connect/wallet-connect.module').then((m) => m.WalletConnectComponentModule),
+      },
+      {
         path: '',
         redirectTo: '/tabs/tab1',
         pathMatch: 'full',

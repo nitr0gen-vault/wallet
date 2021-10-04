@@ -2,6 +2,9 @@
   <ion-toolbar>
     <ion-title> Nitr0gen Wallet </ion-title>
     <ion-buttons slot="end">
+      <ion-button [routerLink]="['/tabs','wc']">
+        <img class="icon-wc" src="/assets/icon/walletconnect-logo.svg" style="color:#fff" />      
+      </ion-button>
       <ion-button *ngIf="!refreshing" (click)="refresh()">
         <ion-icon slot="start" name="refresh"></ion-icon>
       </ion-button>

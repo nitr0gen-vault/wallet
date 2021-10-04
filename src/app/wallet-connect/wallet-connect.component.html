@@ -1,0 +1,162 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Nitr0gen Wallet </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ng-container *ngIf="walletConnect.requests.connection">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Connection Request</ion-card-subtitle>
+        <ion-card-title>{{
+          walletConnect.requests.connection.proposer.metadata.name
+        }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Wants to connect to your wallet.
+
+        <div class="actions">
+          <ion-button color="success" (click)="walletConnect.allow('connect')"
+            >Allow</ion-button
+          >
+          <ion-button color="danger" (click)="walletConnect.deny('connect')"
+            >Deny</ion-button
+          >
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+  <ng-container *ngIf="walletConnect.requests.eth_sendTransaction">
+    <!-- need to make card component -->
+
+    <ion-card class="ion-no-padding native wallet-card">
+      <ion-card-content class="ion-no-padding">
+        <ion-grid>
+          <ion-row>
+            <ion-col class="qr"
+              ><img
+                src="/assets/crypto/icons/{{
+                  symbolConvert(walletConnect.wallet.symbol)
+                }}.svg"
+              />
+              <qrcode
+                [qrdata]="walletConnect.wallet.address"
+                [width]="120"
+                [errorCorrectionLevel]="'M'"
+              ></qrcode>
+            </ion-col>
+            <ion-col class="setpositon"
+              ><h1 class="trunc">
+                {{ walletConnect.wallet.symbol.toUpperCase() }}
+              </h1>
+              <div>{{ getAmount(walletConnect.wallet) }}</div>
+              <div class="smaller">{{ walletConnect.wallet.address }}</div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Transfer Request From</ion-card-subtitle>
+        <ion-card-title>{{
+          walletConnect.requests.eth_sendTransaction.session.peer.metadata.name
+        }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list>
+          <ion-item class="indent">
+            <ion-label position="floating">To Address</ion-label>
+            <ion-input
+              placeholder="0x"
+              readonly
+              [value]="
+                walletConnect.requests.eth_sendTransaction.event.request
+                  .params[0].to
+              "
+            ></ion-input>
+          </ion-item>
+          <ion-item class="indent">
+            <ion-label position="floating">Amount</ion-label>
+            <ion-input
+              placeholder="0x"
+              readonly
+              [value]="
+                bn2N(
+                  walletConnect.requests.eth_sendTransaction.event.request
+                    .params[0].value
+                )
+              "
+            ></ion-input>
+          </ion-item>
+          <ion-item class="indent">
+            <ion-label position="floating">Gas Price</ion-label>
+            <ion-input
+              placeholder="0x"
+              readonly
+              [value]="
+                bn2N(
+                  walletConnect.requests.eth_sendTransaction.event.request
+                    .params[0].gasPrice
+                )
+              "
+            ></ion-input>
+          </ion-item>
+          <ion-item class="indent">
+            <ion-label position="floating">From</ion-label>
+            <ion-input
+              placeholder="0x"
+              readonly
+              [value]="
+                walletConnect.requests.eth_sendTransaction.event.request
+                  .params[0].from
+              "
+            ></ion-input>
+          </ion-item>
+        </ion-list>
+
+        <div class="actions">
+          <ion-button
+            color="success"
+            (click)="walletConnect.getSignature()"
+            >Transfer</ion-button
+          >
+          <ion-button
+            color="danger"
+            (click)="walletConnect.deny('eth_sendTransaction')"
+            >Cancel</ion-button
+          >
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+  <ion-card>
+    <ion-card-header>
+      <!-- <ion-card-subtitle>Connection Request</ion-card-subtitle> -->
+      <ion-card-title>Establish Connection</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list>
+        <ion-item>
+          <ion-label position="floating">Wallet Connect URI</ion-label>
+          <ion-input
+            placeholder="wc:"
+            [(ngModel)]="walletConnectUri"
+          ></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="actions">
+        <ion-button color="success" (click)="connect()">Connect</ion-button>
+        <ion-button
+          color="secondary"
+          (click)="scanner()"
+          [disabled]="!canScan()"
+          >QR Scanner</ion-button
+        >
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

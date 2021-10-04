@@ -1,0 +1,51 @@
+.indent {
+  margin-left: 20px;
+}
+
+.full-width {
+  padding: 0 10px;
+}
+
+.slim-down {
+  width: 75%;
+  margin: 0 auto;
+}
+
+.actions {
+  text-align: center;
+
+  ion-button {
+    margin:10px 10px;
+  }
+}
+
+.litdent {
+  margin-left: 3px;
+  margin-right: 20px;
+}
+
+.contain {
+  padding: 20px;
+}
+
+.wallet-card {
+  width: 75%;
+  margin: 10px auto;
+  text-align: center;
+  font-size: 18px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+
+  ion-col img {
+    position: absolute;
+    top: 48px;
+    left: calc(50% - 16px);
+    width: 32px;
+  }
+}
