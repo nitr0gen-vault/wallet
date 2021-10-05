@@ -40,6 +40,10 @@
       <ion-label position="floating">Amount</ion-label>
       <ion-input type="number" [(ngModel)]="amount"></ion-input>
     </ion-item>
+    <ion-item class="indent" *ngIf="token">
+      <ion-label position="floating">Contract Address</ion-label>
+      <ion-input readonly [value]="token.contract"></ion-input>
+    </ion-item>    
     <ng-container *ngIf="displayFees.low">
       <ion-list-header> Transaction Fee </ion-list-header>
       <ion-segment [(ngModel)]="selectedFee">

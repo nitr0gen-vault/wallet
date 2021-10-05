@@ -49,7 +49,7 @@ export class SendComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.params['id'];
     const token = this.route.snapshot.params['token'];
     const wallets = await this.otk.getWallets();
-
+    
     wallets.forEach((wallet) => {
       if (wallet.nId === id) {
         // Update token amount if token
