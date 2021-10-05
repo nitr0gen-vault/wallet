@@ -91,8 +91,10 @@ export class WalletConnectComponent implements OnInit {
     return !this.platform.is('mobileweb');
   }
 
-  public bn2N(bn: BigNumber): string {
-    return new BigNumber(bn).dividedBy(ETH_GWEI_DECIMAL).toString();
+  public bn2N(bn: BigNumber, gwei = false): string {
+    return new BigNumber(bn)
+      .dividedBy(gwei ? ETH_GWEI_DECIMAL : ETH_DECIMAL)
+      .toString();
   }
 
   symbolConvert(symbol: string) {

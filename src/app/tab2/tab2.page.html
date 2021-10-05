@@ -2,8 +2,16 @@
   <ion-toolbar>
     <ion-title> Nitr0gen Wallet </ion-title>
     <ion-buttons slot="end">
+      <!-- Quick Implemented, Will switch to obersables but using Angular for now -->
+      <ion-badge color="success" *ngIf="walletConnect.requests.session && !walletConnect.requests.pending">&nbsp;</ion-badge>
+      <ion-badge color="warning" *ngIf="walletConnect.requests.session && walletConnect.requests.pending">&nbsp;</ion-badge>
+      <ion-badge color="danger" *ngIf="!walletConnect.requests.session">&nbsp;</ion-badge>      
       <ion-button [routerLink]="['/tabs','wc']">
-        <img class="icon-wc" src="/assets/icon/walletconnect-logo.svg" style="color:#fff" />      
+        <img
+          class="icon-wc"
+          src="/assets/icon/walletconnect-logo.svg"
+          style="color: #fff"
+        />
       </ion-button>
       <ion-button *ngIf="!refreshing" (click)="refresh()">
         <ion-icon slot="start" name="refresh"></ion-icon>

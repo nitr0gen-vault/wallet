@@ -53,7 +53,7 @@ export class Tab2Page implements OnInit {
     private loadingController: LoadingController,
     private storage: StorageService,
     private platform: Platform,
-    private walletConnect: WalletConnectService
+    public walletConnect: WalletConnectService
   ) {}
 
   wallets: any[];

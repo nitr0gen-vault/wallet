@@ -35,6 +35,7 @@ export class WalletConnectService {
   requests = {
     session: null as any,
     connection: null as any,
+    pending: false,
     eth_sendTransaction: null as any,
     eth_sign: null as any,
     eth_signTypedData: null as any,
@@ -155,7 +156,7 @@ export class WalletConnectService {
   async findWallet(from: any): Promise<Wallet> {
     const wallets = await this.otk.getWallets();
     for (let i = wallets.length; i--; ) {
-      if (wallets[i].address === from) {
+      if (wallets[i].address.toLowerCase() === from.toLowerCase()) {
         return wallets[i];
       }
     }
@@ -197,6 +198,7 @@ export class WalletConnectService {
       }
       console.log('WC Session Request :');
       console.log(payload);
+      this.requests.session = payload.params[0];
 
       // Handle Session Request using V2 type object passthrough
       this.requests.connection = {
@@ -226,8 +228,7 @@ export class WalletConnectService {
           const chainId = this.symbol2ChainId(wallets[i].symbol);
           if (this.checkWalletSessionId(wallets[i], sessionChainId)) {
             //if (chainId === sessionChainId.toString()) {
-            //accounts.add(wallets[i].address);
-            accounts.add('0xf79b9E3218630724B29311fA36B5Ab8a7b680838');
+            accounts.add(wallets[i].address);
           }
         }
 
@@ -255,8 +256,6 @@ export class WalletConnectService {
 
       switch (payload.method) {
         case 'eth_sign':
-          // Hack
-          payload.params[0] = '0x2e0eCeE46f5CC9Fb5cec813a8DBF8602DC2C67b7';
           this.wallet = await this.findWallet(payload.params[0]);
           console.log(this.wallet);
 
@@ -270,7 +269,7 @@ export class WalletConnectService {
               },
             },
           };
-
+          this.requests.pending = true;
 
           this.allowHandler = async (result) => {
             console.log('WC Approved :');
@@ -293,8 +292,6 @@ export class WalletConnectService {
           };
           break;
         case 'eth_signTypedData':
-          // Hack
-          payload.params[0] = '0x2e0eCeE46f5CC9Fb5cec813a8DBF8602DC2C67b7';
           this.wallet = await this.findWallet(payload.params[0]);
           console.log(this.wallet);
 
@@ -309,7 +306,7 @@ export class WalletConnectService {
               },
             },
           };
-
+          this.requests.pending = true;
 
           this.allowHandler = async (result) => {
             console.log('WC Approved :');
@@ -332,8 +329,6 @@ export class WalletConnectService {
           };
           break;
         case 'eth_sendTransaction':
-          // Hack
-          payload.params[0].from = '0x2e0eCeE46f5CC9Fb5cec813a8DBF8602DC2C67b7';
           this.wallet = await this.findWallet(payload.params[0].from);
           console.log(payload.params[0].from);
           console.log(this.wallet);
@@ -349,6 +344,7 @@ export class WalletConnectService {
               },
             },
           };
+          this.requests.pending = true;
 
           console.log(this.requests.eth_sendTransaction);
 
@@ -378,18 +374,6 @@ export class WalletConnectService {
           // Reject until others supported
           break;
       }
-
-      /* payload:
-  {
-    id: 1,
-    jsonrpc: '2.0'.
-    method: 'eth_sign',
-    params: [
-      "0xbc28ea04101f03ea7a94c1379bc3ab32e65e62d3",
-      "My email is john@doe.com - 1537836206101"
-    ]
-  }
-  */
     });
 
     this.client.on('disconnect', (error, payload) => {
@@ -416,12 +400,15 @@ export class WalletConnectService {
         break;
       case 'eth_sendTransaction':
         this.requests.eth_sendTransaction = null;
+        this.requests.pending = false;
         break;
       case 'eth_sign':
         this.requests.eth_sign = null;
+        this.requests.pending = false;
         break;
       case 'eth_signTypedData':
         this.requests.eth_signTypedData = null;
+        this.requests.pending = false;
         break;
     }
   }
@@ -433,10 +420,10 @@ export class WalletConnectService {
     const chainId = this.requests.session.chainId;
     const txSig = {
       to: this.requests.eth_sendTransaction.event.request.params[0].to,
-      from: this.wallet.address,
+      from: this.requests.eth_sendTransaction.event.request.params[0].from,
       amount: this.requests.eth_sendTransaction.event.request.params[0].value,
-      nonce: this.requests.eth_sendTransaction.event.request.params[0].nonce,
-      gas: this.requests.eth_sendTransaction.event.request.params[0].gasPrice,
+      nonce: this.requests.eth_sendTransaction.event.request.params[0].nonce || 0,
+      gas: this.requests.eth_sendTransaction.event.request.params[0].gas,
       chainId,
     };
 
@@ -470,15 +457,19 @@ export class WalletConnectService {
     switch (type) {
       case 'connect':
         this.requests.connection = null;
+        this.requests.session = null;
         break;
       case 'eth_sendTransaction':
         this.requests.eth_sendTransaction = null;
+        this.requests.pending = false;
         break;
       case 'eth_sign':
         this.requests.eth_sign = null;
+        this.requests.pending = false;
         break;
       case 'eth_signTypedData':
         this.requests.eth_signTypedData = null;
+        this.requests.pending = false;
         break;
     }
   }
@@ -539,9 +530,116 @@ export class WalletConnectService {
 
       //console.log(result);
       console.log(rawTxHex);
+
+      // results we need to ass responses
+      this.loading.message = 'Sending to network';
+
       this.loading.dismiss();
-      this.allow('eth_sendTransaction', rawTxHex);
+
+      let reply = (await this.otk.sendTransaction(
+        rawTxHex,
+        this.wallet.symbol
+      )) as any;
+
+      console.log(reply);
+
+      this.loadingController.dismiss();
+
+      
+      const txId = reply.hash;
+      if(txId) {
+        this.allow('eth_sendTransaction', rawTxHex);
+        await this.transactionCompleted(txId)
+      }else{
+        this.deny('eth_sendTransaction');
+        await this.networkError(reply);
+      }
     }
+  }
+
+  private async transactionCompleted(hash: string) {
+    let url;
+    switch (this.wallet.symbol) {
+      case 'btc':
+        url = 'https://live.blockcypher.com/btc-mainnet/tx/' + hash;
+        break;
+      case 'tbtc':
+        url = 'https://live.blockcypher.com/btc-testnet/tx/' + hash;
+        break;
+      case 'tbnb':
+        url = 'https://testnet.bscscan.com/tx/' + hash;
+        break;
+      case 'bnb':
+        url = 'https://testnet.bscscan.com/tx/' + hash;
+        break;
+      case 'ropsten':
+        url = 'https://ropsten.etherscan.io/tx/' + hash;
+        break;
+      case 'eth':
+        url = 'https://ropsten.etherscan.io/tx/' + hash;
+        break;
+      case 'niles':
+        url =
+          'https://nile.tronscan.org/?_ga=2.110927430.217637337.1632125473-1513070376.1631871841#/transaction/' +
+          hash;
+        break;
+      case 'trx':
+        url =
+          'https://tronscan.org/?_ga=2.110927430.217637337.1632125473-1513070376.1631871841#/transaction/' +
+          hash;
+        break;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Transaction Complete',
+      message: hash,
+      buttons: [
+        {
+          text: 'View',
+          cssClass: 'primary',
+          handler: async () => {
+            await Browser.open({
+              url: url,
+            });
+          },
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+      ],
+    });
+    alert.present();
+  }
+
+  private async networkError(reply: any) {
+    let message;
+    switch (this.wallet.symbol) {
+      case 'btc':
+      case 'tbtc':
+        message = 'Unknown Error';
+        break;
+      case 'tbnb':
+      case 'bnb':
+        message = 'Unknown Error';
+        break;
+      case 'ropsten':
+      case 'eth':
+        message = reply.reason;
+        break;
+      case 'niles':
+      case 'trx':
+        message = 'Unknown Error';
+        break;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Network Error',
+      message,
+    });
+    this.loadingController.dismiss();
+    await alert.present();
   }
 
   private async noErrors(response: any): Promise<boolean> {
