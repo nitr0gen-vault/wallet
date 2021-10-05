@@ -10,7 +10,7 @@
       <ion-card-header>
         <ion-card-subtitle>Connection Request</ion-card-subtitle>
         <ion-card-title>{{
-          walletConnect.requests.connection.proposer.metadata.name
+          walletConnect.requests.session.peerMeta.name
         }}</ion-card-title>
       </ion-card-header>
       <ion-card-content>
@@ -27,7 +27,13 @@
       </ion-card-content>
     </ion-card>
   </ng-container>
-  <ng-container *ngIf="walletConnect.requests.eth_sendTransaction">
+  <ng-container
+    *ngIf="
+      walletConnect.requests.eth_sendTransaction ||
+      walletConnect.requests.eth_sign ||
+      walletConnect.requests.eth_signTypedData
+    "
+  >
     <!-- need to make card component -->
 
     <ion-card class="ion-no-padding native wallet-card">
@@ -57,12 +63,14 @@
         </ion-grid>
       </ion-card-content>
     </ion-card>
+  </ng-container>
 
+  <ng-container *ngIf="walletConnect.requests.eth_sendTransaction">
     <ion-card>
       <ion-card-header>
         <ion-card-subtitle>Transfer Request From</ion-card-subtitle>
         <ion-card-title>{{
-          walletConnect.requests.eth_sendTransaction.session.peer.metadata.name
+          walletConnect.requests.session.peerMeta.name
         }}</ion-card-title>
       </ion-card-header>
       <ion-card-content>
@@ -118,9 +126,7 @@
         </ion-list>
 
         <div class="actions">
-          <ion-button
-            color="success"
-            (click)="walletConnect.getSignature()"
+          <ion-button color="success" (click)="walletConnect.getSignature()"
             >Transfer</ion-button
           >
           <ion-button
@@ -132,7 +138,50 @@
       </ion-card-content>
     </ion-card>
   </ng-container>
-  <ion-card>
+
+  <ng-container *ngIf="walletConnect.requests.eth_sign">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Signature Request From</ion-card-subtitle>
+        <ion-card-title>{{
+          walletConnect.requests.session.peerMeta.name
+        }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Currently this action is not supported.
+
+        <div class="actions">
+          <ion-button color="success" disabled>Sign</ion-button>
+          <ion-button color="danger" (click)="walletConnect.deny('eth_sign')"
+            >Cancel</ion-button
+          >
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <ng-container *ngIf="walletConnect.requests.eth_signTypedData">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>Typed Signature Request From</ion-card-subtitle>
+        <ion-card-title>{{
+          walletConnect.requests.session.peerMeta.name
+        }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        Currently this action is not supported.
+
+        <div class="actions">
+          <ion-button color="success" disabled>Sign</ion-button>
+          <ion-button color="danger" (click)="walletConnect.deny('eth_signTypedData')"
+            >Cancel</ion-button
+          >
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
+
+  <ion-card *ngIf="!walletConnect.requests.session">
     <ion-card-header>
       <!-- <ion-card-subtitle>Connection Request</ion-card-subtitle> -->
       <ion-card-title>Establish Connection</ion-card-title>
@@ -155,6 +204,23 @@
           (click)="scanner()"
           [disabled]="!canScan()"
           >QR Scanner</ion-button
+        >
+      </div>
+    </ion-card-content>
+  </ion-card>
+  <ion-card
+    *ngIf="!walletConnect.requests.connection && walletConnect.requests.session"
+  >
+    <ion-card-header>
+      <ion-card-subtitle>Connected To</ion-card-subtitle>
+      <ion-card-title>{{
+        walletConnect.requests.session.peerMeta.name
+      }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div class="actions">
+        <ion-button color="danger" (click)="disconnect()"
+          >Disconnect</ion-button
         >
       </div>
     </ion-card-content>

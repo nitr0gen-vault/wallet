@@ -53,6 +53,10 @@ export class WalletConnectComponent implements OnInit {
     this.walletConnect.connect(uri ? uri : this.walletConnectUri);
   }
 
+  public async disconnect() {
+    this.walletConnect.disconnect();
+  }
+
   public async scanner() {
     const status = await BarcodeScanner.checkPermission({ force: true });
     // const status = {
