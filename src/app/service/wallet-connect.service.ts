@@ -13,6 +13,13 @@ import { Injectable } from '@angular/core';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { OtkService, Wallet } from './otk.service';
 import { Browser } from '@capacitor/browser';
+import {
+  ETH_GWEI_DECIMAL,
+  FeePricing,
+  Nitr0genApiService,
+} from './nitr0gen-api.service';
+import { type } from 'os';
+import { async } from 'rxjs';
 
 export const SUPPORTED_CHAINS = [
   // mainnets
@@ -29,6 +36,10 @@ export class WalletConnectService {
   history = [];
   client: WalletConnect;
   public wallet: Wallet;
+  displayFees: FeePricing = {} as any;
+  fees: FeePricing;
+  feeSymbol = '';
+  selectedFee = 'medium';
 
   // Need a better way maybe events / observables
   // However we can piggy back of Angular
@@ -48,7 +59,8 @@ export class WalletConnectService {
   constructor(
     private otk: OtkService,
     private alertController: AlertController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private nitr0api: Nitr0genApiService
   ) {
     (async () => {
       const wc = localStorage.getItem('walletconnect');
@@ -333,6 +345,70 @@ export class WalletConnectService {
           console.log(payload.params[0].from);
           console.log(this.wallet);
 
+          // Our gas fee solution
+          switch (this.wallet.symbol) {
+            case 'ropsten':
+              //BigNumber.config({ DECIMAL_PLACES: 3 });
+              this.feeSymbol = 'gwei';
+              this.fees = await this.nitr0api.wallet.ethereum.getFee('test');
+              this.displayFees = {
+                low: parseFloat((this.fees.low / ETH_GWEI_DECIMAL).toFixed(2)),
+                medium: parseFloat(
+                  (this.fees.medium / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+                high: parseFloat(
+                  (this.fees.high / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+              };
+
+              break;
+            case 'eth':
+              //BigNumber.config({ DECIMAL_PLACES: 3 });
+              this.feeSymbol = 'gwei';
+              this.fees = await this.nitr0api.wallet.ethereum.getFee('main');
+
+              this.displayFees = {
+                low: parseFloat((this.fees.low / ETH_GWEI_DECIMAL).toFixed(2)),
+                medium: parseFloat(
+                  (this.fees.medium / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+                high: parseFloat(
+                  (this.fees.high / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+              };
+              break;
+            case 'tbnb':
+              //BigNumber.config({ DECIMAL_PLACES: 3 });
+              this.feeSymbol = 'gwei';
+              this.fees = await this.nitr0api.wallet.binance.getFee('test');
+
+              this.displayFees = {
+                low: parseFloat((this.fees.low / ETH_GWEI_DECIMAL).toFixed(2)),
+                medium: parseFloat(
+                  (this.fees.medium / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+                high: parseFloat(
+                  (this.fees.high / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+              };
+              break;
+            case 'bnb':
+              //BigNumber.config({ DECIMAL_PLACES: 3 });
+              this.feeSymbol = 'gwei';
+              this.fees = await this.nitr0api.wallet.binance.getFee('main');
+
+              this.displayFees = {
+                low: parseFloat((this.fees.low / ETH_GWEI_DECIMAL).toFixed(2)),
+                medium: parseFloat(
+                  (this.fees.medium / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+                high: parseFloat(
+                  (this.fees.high / ETH_GWEI_DECIMAL).toFixed(2)
+                ),
+              };
+              break;
+          }
+
           console.log(this.requests.session);
           this.requests.eth_sendTransaction = {
             event: {
@@ -358,12 +434,12 @@ export class WalletConnectService {
             });
           };
 
-          this.denyHandler = async () => {
+          this.denyHandler = async (message = 'Rejected Transfer') => {
             console.log('Sending Reject Back');
             this.client.rejectRequest({
               id: payload.id,
               error: {
-                message: 'Rejected Transfer',
+                message,
               },
             });
           };
@@ -422,8 +498,12 @@ export class WalletConnectService {
       to: this.requests.eth_sendTransaction.event.request.params[0].to,
       from: this.requests.eth_sendTransaction.event.request.params[0].from,
       amount: this.requests.eth_sendTransaction.event.request.params[0].value,
-      nonce: this.requests.eth_sendTransaction.event.request.params[0].nonce || 0,
-      gas: this.requests.eth_sendTransaction.event.request.params[0].gas,
+      nonce:
+        this.requests.eth_sendTransaction.event.request.params[0].nonce || this.wallet.nonce,
+      gas:
+        this.fees[this.selectedFee] ||
+        this.requests.eth_sendTransaction.event.request.params[0].gas,
+      data: this.requests.eth_sendTransaction.event.request.params[0].data,
       chainId,
     };
 
@@ -451,8 +531,8 @@ export class WalletConnectService {
   }
 
   private denyHandler: Function;
-  public async deny(type: string) {
-    await this.denyHandler();
+  public async deny(type: string, message?: string) {
+    await this.denyHandler(message);
 
     switch (type) {
       case 'connect':
@@ -532,9 +612,7 @@ export class WalletConnectService {
       console.log(rawTxHex);
 
       // results we need to ass responses
-      this.loading.message = 'Sending to network';
-
-      this.loading.dismiss();
+      this.loading.message = 'Sending to network';      
 
       let reply = (await this.otk.sendTransaction(
         rawTxHex,
@@ -545,14 +623,18 @@ export class WalletConnectService {
 
       this.loadingController.dismiss();
 
-      
       const txId = reply.hash;
-      if(txId) {
-        this.allow('eth_sendTransaction', rawTxHex);
-        await this.transactionCompleted(txId)
-      }else{
-        this.deny('eth_sendTransaction');
-        await this.networkError(reply);
+      if (txId) {
+        this.allow('eth_sendTransaction', txId);
+        await this.transactionCompleted(txId);
+      } else {
+        let message = '';
+        if (reply.body) {
+          let body = JSON.parse(reply.body);
+          message = body.error.message;
+        }
+        this.deny('eth_sendTransaction', message);
+        await this.networkError(reply, message);
       }
     }
   }
@@ -613,25 +695,26 @@ export class WalletConnectService {
     alert.present();
   }
 
-  private async networkError(reply: any) {
-    let message;
-    switch (this.wallet.symbol) {
-      case 'btc':
-      case 'tbtc':
-        message = 'Unknown Error';
-        break;
-      case 'tbnb':
-      case 'bnb':
-        message = 'Unknown Error';
-        break;
-      case 'ropsten':
-      case 'eth':
-        message = reply.reason;
-        break;
-      case 'niles':
-      case 'trx':
-        message = 'Unknown Error';
-        break;
+  private async networkError(reply: any, message?: string) {
+    if (!message) {
+      switch (this.wallet.symbol) {
+        case 'btc':
+        case 'tbtc':
+          message = 'Unknown Error';
+          break;
+        case 'tbnb':
+        case 'bnb':
+          message = 'Unknown Error';
+          break;
+        case 'ropsten':
+        case 'eth':
+          message = reply.reason;
+          break;
+        case 'niles':
+        case 'trx':
+          message = 'Unknown Error';
+          break;
+      }
     }
 
     const alert = await this.alertController.create({

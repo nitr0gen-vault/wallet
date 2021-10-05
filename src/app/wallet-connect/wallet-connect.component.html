@@ -99,7 +99,7 @@
               "
             ></ion-input>
           </ion-item>
-          <ion-item class="indent">
+          <!-- <ion-item class="indent">
             <ion-label position="floating">Gas Price</ion-label>
             <ion-input
               placeholder="0x"
@@ -111,8 +111,8 @@
                 )
               "
             ></ion-input>
-          </ion-item>
-          <ion-item class="indent">
+          </ion-item> -->
+          <!-- <ion-item class="indent">
             <ion-label position="floating">From</ion-label>
             <ion-input
               placeholder="0x"
@@ -122,7 +122,24 @@
                   .params[0].from
               "
             ></ion-input>
-          </ion-item>
+          </ion-item> -->
+          <ng-container *ngIf="walletConnect.displayFees.low">
+            <ion-list-header> Transaction Fee </ion-list-header>
+            <ion-segment [(ngModel)]="walletConnect.selectedFee">
+              <ion-segment-button value="low">
+                <ion-label>Slow</ion-label>
+                <ion-label>{{ walletConnect.displayFees.low }} {{ walletConnect.feeSymbol }}</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="medium">
+                <ion-label>Normal</ion-label>
+                <ion-label>{{ walletConnect.displayFees.medium }} {{ walletConnect.feeSymbol }}</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="high">
+                <ion-label>Fast</ion-label>
+                <ion-label>{{ walletConnect.displayFees.high }} {{ walletConnect.feeSymbol }}</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+          </ng-container>
         </ion-list>
 
         <div class="actions">
