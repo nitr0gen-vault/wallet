@@ -17,7 +17,7 @@ export class AppComponent implements OnInit {
   constructor(private otk: OtkService, private platform: Platform) {}
 
   ngOnInit() {
-    if (!this.platform.is('mobileweb')) {
+    if (!this.platform.is('mobileweb') && !this.platform.is('desktop')) {
       // Request permission to use push notifications
       // iOS will prompt user and return if they granted permission or not
       // Android will just grant without prompting
