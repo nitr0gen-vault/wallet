@@ -32,12 +32,12 @@ SwiperCore.use([Pagination, Navigation]);
 // Import Swiper styles
 
 @Component({
-  selector: 'app-tab2',
-  templateUrl: 'tab2.page.html',
-  styleUrls: ['tab2.page.scss'],
+  selector: 'app-wallet',
+  templateUrl: 'wallet.page.html',
+  styleUrls: ['wallet.page.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class Tab2Page implements OnInit {
+export class WalletPage implements OnInit {
   refreshing = false;
   @ViewChild('swiper', { static: false }) swiper?: SwiperComponent;
 

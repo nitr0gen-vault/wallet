@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { SendComponent } from '../send/send.component';
 import { TabsPage } from './tabs.page';
 
 const routes: Routes = [
@@ -11,17 +10,17 @@ const routes: Routes = [
       {
         path: 'tab1',
         loadChildren: () =>
-          import('../tab1/tab1.module').then((m) => m.Tab1PageModule),
+          import('../home/home.module').then((m) => m.HomePageModule),
       },
       {
         path: 'tab2',
         loadChildren: () =>
-          import('../tab2/tab2.module').then((m) => m.Tab2PageModule),
+          import('../wallet/wallet.module').then((m) => m.WalletPageModule),
       },
       {
         path: 'tab3',
         loadChildren: () =>
-          import('../tab3/tab3.module').then((m) => m.Tab3PageModule),
+          import('../settings/settings.module').then((m) => m.SettingsPageModule),
       },
       {
         path: 'status/:id',

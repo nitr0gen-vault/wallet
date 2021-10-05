@@ -15,11 +15,11 @@ import { Nitr0genApiService } from '../service/nitr0gen-api.service';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 
 @Component({
-  selector: 'app-tab3',
-  templateUrl: 'tab3.page.html',
-  styleUrls: ['tab3.page.scss'],
+  selector: 'app-settings',
+  templateUrl: 'settings.page.html',
+  styleUrls: ['settings.page.scss'],
 })
-export class Tab3Page implements OnInit {
+export class SettingsPage implements OnInit {
   version = environment.version;
   uuid: string;
   pairCode: string;
