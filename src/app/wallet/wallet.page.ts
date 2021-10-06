@@ -198,11 +198,7 @@ export class WalletPage implements OnInit {
   }
 
   async addToken(wallet: Wallet) {
-    // Coming Soon
-    const alert = await this.alert.create({
-      message: 'Coming Soon',
-    });
-    await alert.present();
+    this.router.navigate(['tabs', 'token', wallet.nId]);
   }
 
   async presentKebabSheet(wallet: Wallet) {

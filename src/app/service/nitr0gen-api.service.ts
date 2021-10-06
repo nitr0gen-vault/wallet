@@ -109,6 +109,26 @@ class Wallet {
     );
   }
 
+  public async addToken(
+    key: string, //nId or address really
+    name: string,
+    symbol: string,
+    decimal: number,
+    address: string
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(`${environment.api.serverUrl}/wallet/token`, {
+        key,
+        token: {
+          name,
+          symbol,
+          decimal,
+          address
+        },        
+      })
+    );
+  }
+
   public async cache(uuid: string): Promise<any> {
     return await lastValueFrom(
       this.http.post<any>(`${environment.api.serverUrl}/wallet/cache`, {

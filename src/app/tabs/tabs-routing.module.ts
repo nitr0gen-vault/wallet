@@ -28,6 +28,11 @@ const routes: Routes = [
           import('../status/status.module').then((m) => m.StatusComponentModule),
       },
       {
+        path: 'token/:id',
+        loadChildren: () =>
+          import('../add-token/add-token.module').then((m) => m.AddTokenComponentModule),
+      },
+      {
         path: 'send/:id/:token',
         loadChildren: () =>
           import('../send/send.module').then((m) => m.SendComponentModule),

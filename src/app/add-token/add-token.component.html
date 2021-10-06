@@ -1,0 +1,61 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Nitr0gen Vault </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card class="ion-no-padding native">
+    <ion-card-content class="ion-no-padding">
+      <ion-grid>
+        <ion-row>
+          <ion-col class="qr"
+            ><img
+              src="/assets/crypto/icons/{{ symbolConvert(wallet.symbol) }}.svg"
+              (error)="symbolIconError($event)"
+            />
+            <qrcode
+              [qrdata]="wallet.address"
+              [width]="120"
+              [errorCorrectionLevel]="'M'"
+            ></qrcode>
+          </ion-col>
+          <ion-col class="setpositon"
+            ><h1 class="trunc">{{ wallet.symbol.toUpperCase() }}</h1>
+            <div>{{ getAmount(wallet) }}</div>
+            <div class="smaller">{{ wallet.address }}</div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list [inset]="true">
+    <ion-list-header> Add Token </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Name</ion-label>
+      <ion-input [(ngModel)]="name"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Symbol</ion-label>
+      <ion-input [(ngModel)]="symbol"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Decimals</ion-label>
+      <ion-input type="number" [(ngModel)]="decimal"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Contract Address</ion-label>
+      <ion-input [(ngModel)]="contract"></ion-input>
+    </ion-item>        
+    <div class="contain">
+      <ion-button (click)="save()" expand="block" color="success"
+        >Save</ion-button
+      >
+      <br />
+      <ion-button (click)="cancel()" expand="block" color="danger"
+        >Cancel</ion-button
+      >
+    </div>
+  </ion-list>
+</ion-content>
