@@ -20,6 +20,7 @@ export interface Wallet {
   nId: string;
   address: string;
   nonce: number;
+  chainId: number
   hashes: string[];
   tokens: Token[];
   amount?: BigNumber;
@@ -100,115 +101,17 @@ export class OtkService {
           //this.wallet$.next(w);
 
           await this.loader('Creating Ethereum Wallet');
-          w = await this.createWallet('ropsten', [
-            {
-              name: 'Tether',
-              symbol: 'USDT',
-              contract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-            },
-            {
-              name: 'USD Coin',
-              symbol: 'USDC',
-              contract: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            },
-            {
-              name: 'Uniswap',
-              symbol: 'UNI',
-              contract: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
-            },
-            {
-              name: 'Chainlink',
-              symbol: 'LINK',
-              contract: '0x514910771af9ca656af840dff83e8264ecf986ca',
-            },
-            {
-              name: 'Wrapped Bitcoin',
-              symbol: 'WBTC',
-              contract: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-            },
-            {
-              name: 'Dai',
-              symbol: 'DAI',
-              contract: '0x6b175474e89094c44da98b954eedeac495271d0f',
-            },
-          ]);
+          w = await this.createWallet('ropsten');
           this.wallet.push(w);
           //this.wallet$.next(w);
 
           await this.loader('Creating Binance Wallet');
-          w = await this.createWallet('tbnb', [
-            {
-              name: 'Binance USD',
-              symbol: 'BUSD',
-              contract: '0x4Fabb145d64652a948d72533023f6E7A623C7C53',
-            },
-            {
-              name: 'FTX Token',
-              symbol: 'FTT',
-              contract: '0x50d1c9771902476076ecfc8b2a83ad6b9355a4c9',
-            },
-            {
-              name: 'Bitcoin BEP2',
-              symbol: 'BTCB',
-              contract: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
-            },
-            {
-              name: 'TrueUSD',
-              symbol: 'TUSD',
-              contract: '0x0000000000085d4780B73119b644AE5ecd22b376',
-            },
-            {
-              name: 'Nexo',
-              symbol: 'NEXO',
-              contract: '0xb62132e35a6c13ee1ee0f84dc5d40bad8d815206',
-            },
-            {
-              name: 'Ankr',
-              symbol: 'ANKR',
-              contract: '0x8290333cef9e6d528dd5618fb97a76f268f3edd4',
-            },
-            {
-              name: 'Trust Wallet Token',
-              symbol: 'TWT',
-              contract: '0x4b0f1812e5df2a09796481ff14017e6005508003',
-            },
-          ]);
+          w = await this.createWallet('tbnb');
           this.wallet.push(w);
           //this.wallet$.next(w);
 
           await this.loader('Creating Tron Wallet');
-          w = await this.createWallet('niles', [
-            {
-              name: 'Wrapped TRX',
-              symbol: 'WTRX',
-              contract: 'TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR',
-            },
-            {
-              name: 'Wrapped BTT',
-              symbol: 'WBTT',
-              contract: 'TKfjV9RNKJJCqPvBtK8L7Knykh7DNWvnYt',
-            },
-            {
-              name: 'Wrapped BTC',
-              symbol: 'WBTC',
-              contract: 'TXpw8XeWYeTUd4quDskoUqeQPowRh4jY65',
-            },
-            {
-              name: 'USD Coin',
-              symbol: 'USDC',
-              contract: 'TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8',
-            },
-            {
-              name: 'Tether',
-              symbol: 'USDT',
-              contract: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
-            },
-            {
-              name: 'JUST Stablecoin',
-              symbol: 'USDJ',
-              contract: 'TMwFHYXLJaRUPeW6421aqXL4ZEzPRFGkGT',
-            },
-          ]);
+          w = await this.createWallet('niles');
           this.wallet.push(w);
           //this.wallet$.next(w);
 
@@ -226,8 +129,8 @@ export class OtkService {
   }
 
   private async createWallet(
-    symbol: string,
-    tokens?: Token[]
+    symbol: string
+    //  tokens?: Token[]
   ): Promise<Wallet> {
     let results = await this.nitr0api.wallet.add(
       symbol,
@@ -251,12 +154,14 @@ export class OtkService {
       address: results.key.address,
       hashes: results.hashes,
       nonce: 0,
-      tokens,
+      chainId: results.chainId,
+      tokens: results.tokens,
+      //  tokens,
     };
   }
 
   public async getDeviceUuid() {
-    return (await Device.getId()).uuid
+    return (await Device.getId()).uuid;
   }
 
   private async generateOtk(): Promise<Otk> {
@@ -322,9 +227,8 @@ export class OtkService {
   }
 
   public async recacheWallets(wallet: Wallet[]): Promise<void> {
-    this.wallet = wallet;    
+    this.wallet = wallet;
     await this.setWallets();
-    //await this.refreshWallets();
   }
 
   public async setWallets(): Promise<void> {
@@ -353,8 +257,7 @@ export class OtkService {
               (rToken) =>
                 token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
             );
-            token.amount = rToken.balance;
-            token.decimal = rToken.decimal;
+            token.amount = rToken ? rToken.balance : 0;
           });
 
           // Doing it like this is inefficient
@@ -652,7 +555,7 @@ export class OtkService {
     };
 
     // Sign Transaction & Send
-    return await txHandler.signTransaction(txBody, {...key, identity:"otk"});
+    return await txHandler.signTransaction(txBody, { ...key, identity: 'otk' });
   }
 
   public async recoveryPreValidate(
@@ -688,10 +591,10 @@ export class OtkService {
     };
 
     // Sign Transaction & Send
-    return await txHandler.signTransaction(txBody, {...key, identity:"otk"});
+    return await txHandler.signTransaction(txBody, { ...key, identity: 'otk' });
   }
 
-  public async pair(uuid:string, otpk: string): Promise<object> {
+  public async pair(uuid: string, otpk: string): Promise<object> {
     const txHandler = new TransactionHandler();
     const key = await this.getKey();
 
@@ -714,8 +617,11 @@ export class OtkService {
     };
 
     // Sign Transaction & Send
-    return lastValueFrom(this.nitr0api.otpkApprove(await txHandler.signTransaction(txBody, key), uuid));
-    
+    return lastValueFrom(
+      this.nitr0api.otpkApprove(
+        await txHandler.signTransaction(txBody, key),
+        uuid
+      )
+    );
   }
-
 }

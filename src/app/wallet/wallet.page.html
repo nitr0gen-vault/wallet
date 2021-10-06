@@ -73,7 +73,7 @@
           </ion-card-content>
         </ion-card>
 
-        <div class="tokens" *ngIf="wallet.tokens">
+        <div class="tokens" *ngIf="wallet.tokens?.length">
           <ion-list [inset]="true">
             <ion-list-header> Tokens </ion-list-header>
             <ng-container *ngFor="let token of wallet.tokens">

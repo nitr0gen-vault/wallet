@@ -187,10 +187,11 @@ export class SettingsPage implements OnInit {
                               tmpWallets.push({
                                 address: wallet.address,
                                 symbol: wallet.symbol,
+                                chainId: wallet.chainId,
                                 nId: wallet.nId,
                                 nonce: 0,
-                                hashes: ['recovered account'], // Need to fetch
-                                tokens: [], // Should auto import
+                                hashes: wallet.hashes,
+                                tokens: wallet.tokens,
                               });
                             }
                             await this.otk.recacheWallets(tmpWallets);
