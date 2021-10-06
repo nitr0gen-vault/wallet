@@ -246,6 +246,14 @@ export class WalletPage implements OnInit {
           },
         },
         {
+          text: 'Hide',
+          icon: 'eye-off',
+          handler: async () => {
+            wallet.hidden = true;
+            this.otk.setWallets();
+          },
+        },
+        {
           text: 'Cancel',
           icon: 'close',
           role: 'cancel',

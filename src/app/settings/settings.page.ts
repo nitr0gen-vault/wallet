@@ -266,6 +266,7 @@ export class SettingsPage implements OnInit {
   public async unhide() {
     const wallets = await this.otk.getWallets();
     wallets.forEach((wallet) => {
+      wallet.hidden = false;
       wallet.tokens?.forEach((token) => {
         token.hidden = false;
       });
