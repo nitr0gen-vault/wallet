@@ -57,15 +57,20 @@ export class AddTokenComponent implements OnInit {
       if (result) {
         this.wallet.tokens.push(result as Token);
         this.otk.refreshWallets();
+        this.clear();
         this.router.navigate(['tabs', 'tab2']);
       }
     }
   }
 
   cancel() {
+    this.clear();
+    this.router.navigate(['tabs', 'tab2']);
+  }
+
+  private clear() {
     this.name = this.symbol = this.contract = '';
     this.decimal = '18';
-    this.router.navigate(['tabs', 'tab2']);
   }
 
   getAmount(wallet: Wallet): string {
