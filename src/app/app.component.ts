@@ -1,3 +1,4 @@
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { Component, OnInit } from '@angular/core';
 import {
   ActionPerformed,
@@ -53,6 +54,20 @@ export class AppComponent implements OnInit {
           console.log(notification);
         }
       );
+
+      const closeElement = document.getElementById('closeBarcode');
+      closeElement.onclick = () => {
+        if (BarcodeScanner) {
+          const angularElement = document.getElementById('angular');
+          const barcodeElement = document.getElementById('barcode');
+          BarcodeScanner.showBackground();
+          BarcodeScanner.stopScan();
+          barcodeElement.style.display = 'none';
+          angularElement.style.display = 'block';
+          // document.body.style.background = '';
+          document.body.style.opacity = '1';
+        }
+      };
     }
   }
 }

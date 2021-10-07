@@ -34,7 +34,19 @@
     <ion-list-header> Send {{ wallet.symbol }} </ion-list-header>
     <ion-item class="indent">
       <ion-label position="floating">To Address</ion-label>
-      <ion-input placeholder="0x" [(ngModel)]="address"></ion-input>
+      <ion-input
+        placeholder="0x"
+        [(ngModel)]="address"
+        [ngStyle]="{ 'margin-right': canScan() ? '12px' : 'auto' }"
+      ></ion-input>
+      <ion-icon
+        *ngIf="canScan()"
+        class="suffix-icon"
+        color="secondary"
+        name="scan-circle-outline"
+        (click)="scanner()"
+        slot="end"
+      ></ion-icon>
     </ion-item>
     <ion-item class="indent">
       <ion-label position="floating">Amount</ion-label>
@@ -43,7 +55,7 @@
     <ion-item class="indent" *ngIf="token">
       <ion-label position="floating">Contract Address</ion-label>
       <ion-input readonly [value]="token.contract"></ion-input>
-    </ion-item>    
+    </ion-item>
     <ng-container *ngIf="displayFees.low">
       <ion-list-header> Transaction Fee </ion-list-header>
       <ion-segment [(ngModel)]="selectedFee">

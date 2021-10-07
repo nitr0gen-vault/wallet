@@ -1,3 +1,8 @@
+import {
+  BarcodeScanner,
+  SupportedFormat,
+} from '@capacitor-community/barcode-scanner';
+import { Keyboard } from '@capacitor/keyboard';
 import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -12,7 +17,7 @@ import { Browser } from '@capacitor/browser';
 import { OtkService, Wallet, Token } from '../service/otk.service';
 import { StorageService } from '../service/storage.service';
 import { BigNumber } from 'bignumber.js';
-import { AlertController, LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController, Platform } from '@ionic/angular';
 
 @Component({
   selector: 'app-send',
@@ -40,16 +45,18 @@ export class SendComponent implements OnInit, OnDestroy {
     public storage: StorageService,
     private alertController: AlertController,
     private loadingController: LoadingController,
-    private nitr0api: Nitr0genApiService
+    private nitr0api: Nitr0genApiService,
+    private platform: Platform
   ) {}
 
   async ngOnInit() {
+ 
     // BigNumber.config({ DECIMAL_PLACES: 0 });
     // BigNumber.config({ ROUNDING_MODE: 0 })
     const id = this.route.snapshot.params['id'];
     const token = this.route.snapshot.params['token'];
     const wallets = await this.otk.getWallets();
-    
+
     wallets.forEach((wallet) => {
       if (wallet.nId === id) {
         // Update token amount if token
@@ -401,6 +408,37 @@ export class SendComponent implements OnInit, OnDestroy {
     }
   }
 
+  public canScan() {
+    return !this.platform.is('mobileweb');
+  }
+
+  public async scanner() {
+    Keyboard.hide(); // iOS launches keyboard, Pair Code gets focus.
+    const status = await BarcodeScanner.checkPermission({ force: true });
+
+    if (status.granted) {
+      const angularElement = document.getElementById('angular');
+      const barcodeElement = document.getElementById('barcode');
+
+      BarcodeScanner.hideBackground();
+      // document.body.style.opacity = '0.2';
+      document.body.style.background = 'transparent';
+      angularElement.style.display = 'none';
+      barcodeElement.style.display = 'flex';
+      const result = await BarcodeScanner.startScan({
+        targetedFormats: [SupportedFormat.QR_CODE],
+      });
+
+      // if the result has content
+      if (result.hasContent) {
+        barcodeElement.style.display = 'none';
+        angularElement.style.display = 'block';
+        document.body.style.opacity = '1';
+        this.address = result.content;
+      }
+    }
+  }
+
   private async transactionCompleted(hash: string) {
     let url;
     switch (this.network) {
@@ -571,8 +609,7 @@ export class SendComponent implements OnInit, OnDestroy {
     }
   }
 
-  symbolIconError($event) {  
-    $event.srcElement.src='/assets/crypto/icons/generic.svg';
+  symbolIconError($event) {
+    $event.srcElement.src = '/assets/crypto/icons/generic.svg';
   }
-
 }

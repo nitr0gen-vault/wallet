@@ -19,54 +19,30 @@
     <ion-item>
       <ion-grid>
         <ion-row>
-          <ion-col class="ion-align-self-center" style="text-align: center"
-            ><qrcode
+          <ion-col class="ion-align-self-center" style="text-align: center">
+            <ion-button expand="full" color="secondary" (click)="copyCode()"
+              >Copy Code</ion-button
+            >
+            <qrcode
               [qrdata]="uuid"
               [width]="176"
               [errorCorrectionLevel]="'M'"
             ></qrcode>
-            <ion-button expand="full" color="secondary" (click)="copyCode()"
-              >Copy Code</ion-button
-            ></ion-col
-          >
-          <ion-col>
-            <ion-grid>
-              <!-- <ion-row>
-                <ion-col class="ion-align-self-center">
-                  <ion-item>
-                    <ion-select placeholder="Select Profile" disabled>
-                      <ion-select-option value="id1"
-                        >Profile Name #1</ion-select-option
-                      >
-                      <ion-select-option value="id2"
-                        >Profile Name #2</ion-select-option
-                      >
-                    </ion-select>
-                  </ion-item>
-                </ion-col>
-              </ion-row> -->
-              <ion-row
-                ><ion-col class="ion-align-self-center">
-                  <ion-button
-                    [style.visibility]="canScan() ? 'visible' : 'hidden'"
-                    expand="full"
-                    color="secondary"
-                    (click)="scanner()"
-                    >Open Scanner</ion-button
-                  >
-                  <ion-item style="margin-top: 90px">
-                    <ion-label position="floating">Pair Code</ion-label>
-                    <ion-input [(ngModel)]="pairCode"></ion-input>
-                  </ion-item>
-                  <ion-button
-                    expand="full"
-                    color="secondary"
-                    (click)="pairWarning()"
-                    >Pair Code</ion-button
-                  >
-                </ion-col></ion-row
-              >
-            </ion-grid>
+            <ion-item class="pair">
+              <ion-label position="floating">Pair Code</ion-label>
+              <ion-input [(ngModel)]="pairCode"></ion-input>
+              <ion-icon
+                *ngIf="canScan()"
+                class="suffix-icon"
+                color="secondary"
+                name="scan-circle-outline"
+                (click)="scanner()"
+                slot="end"
+              ></ion-icon>
+            </ion-item>
+            <ion-button expand="full" color="secondary" (click)="pairWarning()"
+              >Pair Device</ion-button
+            >
           </ion-col>
         </ion-row>
       </ion-grid>

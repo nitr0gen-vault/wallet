@@ -37,20 +37,6 @@ export class SettingsPage implements OnInit {
 
   async ngOnInit() {
     this.uuid = (await Device.getId()).uuid;
-
-    const closeElement = document.getElementById('closeBarcode');
-    closeElement.onclick = () => {
-      if (BarcodeScanner) {
-        const angularElement = document.getElementById('angular');
-        const barcodeElement = document.getElementById('barcode');
-        BarcodeScanner.showBackground();
-        BarcodeScanner.stopScan();
-        barcodeElement.style.display = 'none';
-        angularElement.style.display = 'block';
-        // document.body.style.background = '';
-        document.body.style.opacity = '1';
-      }
-    };
   }
 
   public copyCode() {
@@ -282,9 +268,6 @@ export class SettingsPage implements OnInit {
   public async scanner() {
     Keyboard.hide(); // iOS launches keyboard, Pair Code gets focus.
     const status = await BarcodeScanner.checkPermission({ force: true });
-    // const status = {
-    //   granted: true,
-    // };
 
     if (status.granted) {
       const angularElement = document.getElementById('angular');

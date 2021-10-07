@@ -82,21 +82,20 @@ ion-header {
   align-items: center;
 }
 
-@media only screen 
-    and (device-width : 375px) {
-      .swiper-slide {
-        width: 85%;
+@media only screen and (max-width: 375px) {
+  .swiper-slide {
+    width: 85%;
 
-        ion-card {
-          margin-left:5px;
-          margin-right:5px;
+    ion-card {
+      margin-left: 5px;
+      margin-right: 5px;
 
-          .smaller {
-            padding-right:0;
-          }
-        }
+      .smaller {
+        padding-right: 0;
       }
     }
+  }
+}
 
 .swiper-pagination {
   // top: 0px;

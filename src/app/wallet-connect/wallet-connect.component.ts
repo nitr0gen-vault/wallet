@@ -59,9 +59,6 @@ export class WalletConnectComponent implements OnInit {
 
   public async scanner() {
     const status = await BarcodeScanner.checkPermission({ force: true });
-    // const status = {
-    //   granted: true,
-    // };
 
     if (status.granted) {
       const angularElement = document.getElementById('angular');
@@ -82,7 +79,7 @@ export class WalletConnectComponent implements OnInit {
         angularElement.style.display = 'block';
         // document.body.style.background = '';
         document.body.style.opacity = '1';
-        this.connect(result.content);
+        this.walletConnectUri = result.content;
       }
     }
   }

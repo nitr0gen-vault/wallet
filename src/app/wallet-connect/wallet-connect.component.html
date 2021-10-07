@@ -128,15 +128,24 @@
             <ion-segment [(ngModel)]="walletConnect.selectedFee">
               <ion-segment-button value="low">
                 <ion-label>Slow</ion-label>
-                <ion-label>{{ walletConnect.displayFees.low }} {{ walletConnect.feeSymbol }}</ion-label>
+                <ion-label
+                  >{{ walletConnect.displayFees.low }}
+                  {{ walletConnect.feeSymbol }}</ion-label
+                >
               </ion-segment-button>
               <ion-segment-button value="medium">
                 <ion-label>Normal</ion-label>
-                <ion-label>{{ walletConnect.displayFees.medium }} {{ walletConnect.feeSymbol }}</ion-label>
+                <ion-label
+                  >{{ walletConnect.displayFees.medium }}
+                  {{ walletConnect.feeSymbol }}</ion-label
+                >
               </ion-segment-button>
               <ion-segment-button value="high">
                 <ion-label>Fast</ion-label>
-                <ion-label>{{ walletConnect.displayFees.high }} {{ walletConnect.feeSymbol }}</ion-label>
+                <ion-label
+                  >{{ walletConnect.displayFees.high }}
+                  {{ walletConnect.feeSymbol }}</ion-label
+                >
               </ion-segment-button>
             </ion-segment>
           </ng-container>
@@ -190,7 +199,9 @@
 
         <div class="actions">
           <ion-button color="success" disabled>Sign</ion-button>
-          <ion-button color="danger" (click)="walletConnect.deny('eth_signTypedData')"
+          <ion-button
+            color="danger"
+            (click)="walletConnect.deny('eth_signTypedData')"
             >Cancel</ion-button
           >
         </div>
@@ -211,17 +222,19 @@
             placeholder="wc:"
             [(ngModel)]="walletConnectUri"
           ></ion-input>
+          <ion-icon
+            *ngIf="canScan()"
+            class="suffix-icon"
+            color="secondary"
+            name="scan-circle-outline"
+            (click)="scanner()"
+            slot="end"
+          ></ion-icon>
         </ion-item>
       </ion-list>
 
       <div class="actions">
         <ion-button color="success" (click)="connect()">Connect</ion-button>
-        <ion-button
-          color="secondary"
-          (click)="scanner()"
-          [disabled]="!canScan()"
-          >QR Scanner</ion-button
-        >
       </div>
     </ion-card-content>
   </ion-card>
