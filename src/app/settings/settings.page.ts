@@ -10,6 +10,7 @@ import { StorageService } from '../service/storage.service';
 import { environment } from '../../environments/environment';
 import { OtkService, Wallet } from '../service/otk.service';
 import { Device } from '@capacitor/device';
+import { Keyboard } from '@capacitor/keyboard';
 import { ClipboardService } from 'ngx-clipboard';
 import { Nitr0genApiService } from '../service/nitr0gen-api.service';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
@@ -279,6 +280,7 @@ export class SettingsPage implements OnInit {
   }
 
   public async scanner() {
+    Keyboard.hide(); // iOS launches keyboard, Pair Code gets focus.
     const status = await BarcodeScanner.checkPermission({ force: true });
     // const status = {
     //   granted: true,
