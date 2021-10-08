@@ -13,7 +13,7 @@ import { StorageService } from './storage.service';
 import { Nitr0genApiService } from './nitr0gen-api.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { BigNumber } from 'bignumber.js';
-import { NativeBiometric } from 'capacitor-native-biometric';
+import { NativeBiometric, AvailableResult, BiometryType } from 'capacitor-native-biometric';
 
 //export type Otk = IKey;
 
@@ -70,7 +70,17 @@ export class OtkService {
   ) {
     (async () => {
       await this.getKey();
-      const bioAvail = await NativeBiometric.isAvailable();
+      
+      // Setup default for browser
+      let bioAvail: AvailableResult = {
+        isAvailable: false,
+        biometryType: BiometryType.NONE
+      };
+
+      // Catch browser error
+      try {
+      bioAvail = await NativeBiometric.isAvailable();
+      }catch(e) {}
 
       if (!this.otk) {
         // Time to create

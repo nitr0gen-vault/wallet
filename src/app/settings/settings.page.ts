@@ -187,15 +187,20 @@ export class SettingsPage implements OnInit {
                             // settings
                             this.storage.settings.general.email =
                               cache.settings.email;
-                            this.storage.settings.recovery =
+                            this.storage.settings.recovery.email =
                               cache.settings.recovery;
-                            this.storage.settings.security =
-                              cache.settings.security;
+                            this.storage.settings.security.freeze =
+                              cache.settings.security.freeze;
+                            this.storage.settings.security.twofa =
+                              cache.settings.security.twoFA;
                             this.storage.settings.general.telephone =
                               cache.settings.telephone;
 
                             await this.storage.save();
-                            this.restart();
+                            //this.restart();
+
+                            await this.otk.getWallets();
+                            await this.otk.refreshWallets();
                           }
                         }
                         this.loading.dismiss();
@@ -246,9 +251,11 @@ export class SettingsPage implements OnInit {
     if (this.platform.is('mobileweb')) {
       window.location.href = '/';
     } else {
-      (await this.alertController.create({
-        message: "Please Restart the Application"
-      })).present();
+      (
+        await this.alertController.create({
+          message: 'Please Restart the Application',
+        })
+      ).present();
       return;
       //App.exitApp();
     }

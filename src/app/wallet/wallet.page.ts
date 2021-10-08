@@ -102,6 +102,7 @@ export class WalletPage implements OnInit {
                 const cache = await this.nitr0gen.wallet.cache(
                   await this.otk.getDeviceUuid()
                 );
+                
                 const tmpWallets: Wallet[] = [];
 
                 // We are now on a different uuid (possibly)
@@ -109,6 +110,7 @@ export class WalletPage implements OnInit {
                 // Duplicates doesn't matter as its the signing side that protects everything
 
                 if (cache.keys) {
+                  // TODO Check for duplicates (re double pairing scenario)
                   for (let i = 0; i < cache.keys.length; i++) {
                     const wallet = cache.keys[i];
                     tmpWallets.push({
@@ -126,8 +128,9 @@ export class WalletPage implements OnInit {
 
                   // settings
                   this.storage.settings.general.email = cache.settings.email;
-                  this.storage.settings.recovery = cache.settings.recovery;
-                  this.storage.settings.security = cache.settings.security;
+                  this.storage.settings.recovery.email = cache.settings.recovery;
+                  this.storage.settings.security.freeze = cache.settings.security.freeze;
+                  this.storage.settings.security.twofa = cache.settings.security.twoFA;
                   this.storage.settings.general.telephone =
                     cache.settings.telephone;
 
@@ -152,12 +155,9 @@ export class WalletPage implements OnInit {
     $event.srcElement.src='/assets/crypto/icons/generic.svg';
   }
 
-  public restart() {
-    if (this.platform.is('mobileweb')) {
-      window.location.href = '/';
-    } else {
-      App.exitApp();
-    }
+  public async restart() {
+    this.wallets = await this.otk.getWallets();
+    this.refresh();
   }
 
   getAmount(wallet: Wallet): string {
