@@ -15,7 +15,11 @@ import { AlertController, LoadingController } from '@ionic/angular';
 import { BigNumber } from 'bignumber.js';
 import { NativeBiometric } from 'capacitor-native-biometric';
 
-export type Otk = IKey;
+//export type Otk = IKey;
+
+export interface Otk extends IKey {
+  biometrics?: boolean;
+}
 
 export interface Wallet {
   symbol: string;
@@ -75,7 +79,7 @@ export class OtkService {
         this.otk = await this.generateOtk();
         await this.storage.set('otk', this.otk);
       } else {
-        if (bioAvail.isAvailable && (this.otk as any).biometrics) {
+        if (bioAvail.isAvailable && this.otk.biometrics) {
           // Check if they used biometrics
           const credentials = await NativeBiometric.getCredentials({
             server: 'nitr0gen.auth',
@@ -90,6 +94,7 @@ export class OtkService {
               //description: '',
             });
             this.otk = JSON.parse(credentials.password);
+            this.otk.biometrics = true; // Make sure it is in the payload
           } catch (e) {
             // errors are {message:string, code:0}
             // maybe loop again, For now panic
@@ -130,7 +135,6 @@ export class OtkService {
               await this.loading.dismiss();
               this.loading = null; // Will get recreated
               await this.getBioSafe();
-              console.log('Bio saved');
             }
           } else {
             const error = result as any;
@@ -433,8 +437,18 @@ export class OtkService {
 
   public forceKeyIdentity(ident: string) {
     this.otk.identity = ident;
+
     // No need to wait
-    this.storage.set('otk', this.otk);
+    if(this.otk.biometrics) {
+      // Store
+      NativeBiometric.setCredentials({
+        username: this.otk.identity,
+        password: JSON.stringify(this.otk),
+        server: 'nitr0gen.auth',
+      });
+    }else{ 
+      this.storage.set('otk', this.otk);
+    }
   }
 
   private async keyCreate(
