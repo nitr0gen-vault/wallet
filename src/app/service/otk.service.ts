@@ -75,26 +75,36 @@ export class OtkService {
         this.otk = await this.generateOtk();
         await this.storage.set('otk', this.otk);
       } else {
-        // Check if they used biometrics
-        const credentials = await NativeBiometric.getCredentials({
-          server: 'nitr0gen.auth',
-        });
-        console.log(credentials);
-        // Authenticate before using the credentials
-        try {
-          const bioVerify = await NativeBiometric.verifyIdentity({
-            reason: 'Gain your access right to Nitr0gen Vault Services',
-            title: 'Nitr0gen Authenticate',
-            subtitle: 'Unlock your OTK',
-            //description: '',
+        if (bioAvail.isAvailable && (this.otk as any).biometrics) {
+          // Check if they used biometrics
+          const credentials = await NativeBiometric.getCredentials({
+            server: 'nitr0gen.auth',
           });
-          this.otk = JSON.parse(credentials.password);
-        } catch (e) {
-          console.log(e);
-          // errors are {message:string, code:0}
-          // maybe loop again, For now panic
-          console.log('panic');
-          App.exitApp();
+          console.log(credentials);
+          // Authenticate before using the credentials
+          try {
+            const bioVerify = await NativeBiometric.verifyIdentity({
+              reason: 'Gain your access right to Nitr0gen Vault Services',
+              title: 'Nitr0gen Authenticate',
+              subtitle: 'Unlock your OTK',
+              //description: '',
+            });
+            this.otk = JSON.parse(credentials.password);
+          } catch (e) {
+            // errors are {message:string, code:0}
+            // maybe loop again, For now panic
+            console.log('panic');
+
+            // iOS doesn't like it
+            // App.exitApp();
+            (
+              await this.alertController.create({
+                message:
+                  'Authentication Failed. Restart Application to try again.',
+              })
+            ).present();
+            return;
+          }
         }
       }
 
@@ -116,7 +126,7 @@ export class OtkService {
             this.setKeyIdentity(result.nId);
 
             // Check and ask if they like to use biometrics
-            if (bioAvail) {
+            if (bioAvail.isAvailable) {
               await this.loading.dismiss();
               this.loading = null; // Will get recreated
               await this.getBioSafe();

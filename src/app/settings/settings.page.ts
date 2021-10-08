@@ -242,11 +242,15 @@ export class SettingsPage implements OnInit {
     this.restart();
   }
 
-  public restart() {
+  public async restart() {
     if (this.platform.is('mobileweb')) {
       window.location.href = '/';
     } else {
-      App.exitApp();
+      (await this.alertController.create({
+        message: "Please Restart the Application"
+      })).present();
+      return;
+      //App.exitApp();
     }
   }
 

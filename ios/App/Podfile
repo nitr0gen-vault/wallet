@@ -18,6 +18,7 @@ def capacitor_pods
   pod 'CapacitorPushNotifications', :path => '../../node_modules/@capacitor/push-notifications'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
   pod 'CapacitorStorage', :path => '../../node_modules/@capacitor/storage'
+  pod 'CapacitorNativeBiometric', :path => '../../node_modules/capacitor-native-biometric'
 end
 
 target 'App' do
