@@ -584,8 +584,8 @@ export class WalletConnectService {
   //           accounts,
   //         },
   //         metadata: {
-  //           name: 'Nitr0gen Wallet',
-  //           description: 'Nitr0gen Wallet for WalletConnect',
+  //           name: 'Nitr0gen Vault',
+  //           description: 'Nitr0gen Vault for WalletConnect',
   //           url: 'https://walletconnect.org/',
   //           icons: ['https://walletconnect.org/walletconnect-logo.png'],
   //         },
