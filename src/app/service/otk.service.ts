@@ -1,3 +1,4 @@
+import { App } from '@capacitor/app';
 import {
   IKey,
   KeyHandler,
@@ -10,8 +11,9 @@ import { Injectable, Output } from '@angular/core';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { StorageService } from './storage.service';
 import { Nitr0genApiService } from './nitr0gen-api.service';
-import { LoadingController } from '@ionic/angular';
+import { AlertController, LoadingController } from '@ionic/angular';
 import { BigNumber } from 'bignumber.js';
+import { NativeBiometric } from 'capacitor-native-biometric';
 
 export type Otk = IKey;
 
@@ -20,7 +22,7 @@ export interface Wallet {
   nId: string;
   address: string;
   nonce: number;
-  chainId: number
+  chainId: number;
   hashes: string[];
   tokens: Token[];
   amount?: BigNumber;
@@ -59,16 +61,41 @@ export class OtkService {
   constructor(
     private storage: StorageService,
     private nitr0api: Nitr0genApiService,
-    private loadingControl: LoadingController
+    private loadingControl: LoadingController,
+    private alertController: AlertController
   ) {
     (async () => {
       await this.getKey();
+      const bioAvail = await NativeBiometric.isAvailable();
+
       if (!this.otk) {
         // Time to create
         await this.loader('Creating Device OTK');
 
         this.otk = await this.generateOtk();
         await this.storage.set('otk', this.otk);
+      } else {
+        // Check if they used biometrics
+        const credentials = await NativeBiometric.getCredentials({
+          server: 'nitr0gen.auth',
+        });
+        console.log(credentials);
+        // Authenticate before using the credentials
+        try {
+          const bioVerify = await NativeBiometric.verifyIdentity({
+            reason: 'Gain your access right to Nitr0gen Vault Services',
+            title: 'Nitr0gen Authenticate',
+            subtitle: 'Unlock your OTK',
+            //description: '',
+          });
+          this.otk = JSON.parse(credentials.password);
+        } catch (e) {
+          console.log(e);
+          // errors are {message:string, code:0}
+          // maybe loop again, For now panic
+          console.log('panic');
+          App.exitApp();
+        }
       }
 
       if (!this.otk.identity || !(await this.getWallets()).length) {
@@ -87,12 +114,21 @@ export class OtkService {
 
           if (result.nId) {
             this.setKeyIdentity(result.nId);
+
+            // Check and ask if they like to use biometrics
+            if (bioAvail) {
+              await this.loading.dismiss();
+              this.loading = null; // Will get recreated
+              await this.getBioSafe();
+              console.log('Bio saved');
+            }
           } else {
             const error = result as any;
             console.log(error.status);
           }
         }
 
+        console.log('now gettnig wallet check');
         if (!(await this.getWallets()).length) {
           // Now to Create wallets
           await this.loader('Creating Bitcoin Wallet');
@@ -126,6 +162,41 @@ export class OtkService {
       console.log('Local Wallets:');
       console.log(this.wallet);
     })();
+  }
+
+  private getBioSafe(): Promise<Boolean> {
+    return new Promise(async (resolve, reject) => {
+      const alert = await this.alertController.create({
+        header: 'Enable Biometrics',
+        message: `Do you want to secure your OTK with biometrics?`,
+        buttons: [
+          {
+            text: 'No',
+            role: 'cancel',
+            cssClass: 'secondary',
+            handler: () => {
+              resolve(false);
+            },
+          },
+          {
+            text: 'Yes',
+            handler: async () => {
+              // Store
+              await NativeBiometric.setCredentials({
+                username: this.otk.identity,
+                password: JSON.stringify(this.otk),
+                server: 'nitr0gen.auth',
+              });
+
+              // Now need to update storage otk
+              await this.storage.set('otk', { biometrics: true });
+              resolve(true);
+            },
+          },
+        ],
+      });
+      await alert.present();
+    });
   }
 
   private async createWallet(
