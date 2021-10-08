@@ -1,4 +1,3 @@
-import { App } from '@capacitor/app';
 import {
   IKey,
   KeyHandler,
@@ -13,7 +12,12 @@ import { StorageService } from './storage.service';
 import { Nitr0genApiService } from './nitr0gen-api.service';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { BigNumber } from 'bignumber.js';
-import { NativeBiometric, AvailableResult, BiometryType } from 'capacitor-native-biometric';
+import {
+  NativeBiometric,
+  AvailableResult,
+  BiometryType,
+} from 'capacitor-native-biometric';
+import { environment } from 'src/environments/environment';
 
 //export type Otk = IKey;
 
@@ -70,17 +74,17 @@ export class OtkService {
   ) {
     (async () => {
       await this.getKey();
-      
+
       // Setup default for browser
       let bioAvail: AvailableResult = {
         isAvailable: false,
-        biometryType: BiometryType.NONE
+        biometryType: BiometryType.NONE,
       };
 
       // Catch browser error
       try {
-      bioAvail = await NativeBiometric.isAvailable();
-      }catch(e) {}
+        bioAvail = await NativeBiometric.isAvailable();
+      } catch (e) {}
 
       if (!this.otk) {
         // Time to create
@@ -156,24 +160,28 @@ export class OtkService {
         if (!(await this.getWallets()).length) {
           // Now to Create wallets
           await this.loader('Creating Bitcoin Wallet');
-          let w = await this.createWallet('tbtc');
+          let w = await this.createWallet(
+            environment.production ? 'btc' : 'tbtc'
+          );
           this.wallet.push(w);
-          //this.wallet$.next(w);
 
           await this.loader('Creating Ethereum Wallet');
-          w = await this.createWallet('ropsten');
+          w = await this.createWallet(
+            environment.production ? 'eth' : 'ropsten'
+          );
           this.wallet.push(w);
-          //this.wallet$.next(w);
 
           await this.loader('Creating Binance Wallet');
+          w = await this.createWallet(environment.production ? 'bnb' : 'tbnb');
+          this.wallet.push(w);
+
+          await this.loader('Creating Binance Reward Simulator');
           w = await this.createWallet('tbnb');
           this.wallet.push(w);
-          //this.wallet$.next(w);
 
           await this.loader('Creating Tron Wallet');
-          w = await this.createWallet('niles');
+          w = await this.createWallet(environment.production ? 'trx' : 'niles');
           this.wallet.push(w);
-          //this.wallet$.next(w);
 
           await this.loader('Settling Locally');
           await this.storage.set('wallet', this.wallet);
@@ -391,11 +399,14 @@ export class OtkService {
     tokens?: any[];
   }> {
     let result;
-    let tokens;
     switch (symbol) {
       case 'tbtc':
         result = await this.nitr0api.wallet.bitcoin.getAddress('test', address);
-        // {"address":"mqokzGXZi5zHm5qbyJ85KMvh5dMVDeq9Pd","total_received":0,"total_sent":0,"balance":0,"unconfirmed_balance":0,"final_balance":0,"n_tx":0,"unconfirmed_n_tx":0,"final_n_tx":0,"tx_url":"https://api.blockcypher.com/v1/btc/test3/txs/"}
+        return {
+          balance: new BigNumber(result.balance),
+        };
+      case 'btc':
+        result = await this.nitr0api.wallet.bitcoin.getAddress('main', address);
         return {
           balance: new BigNumber(result.balance),
         };
@@ -409,11 +420,34 @@ export class OtkService {
           nonce: result.nonce,
           tokens: result.tokens,
         };
+      case 'eth':
+        result = await this.nitr0api.wallet.ethereum.getAddress(
+          'main',
+          address
+        );
+        return {
+          balance: new BigNumber(result.balance),
+          nonce: result.nonce,
+          tokens: result.tokens,
+        };
       case 'tbnb':
         result = await this.nitr0api.wallet.binance.getAddress('test', address);
         return {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
+          tokens: result.tokens,
+        };
+      case 'bnb':
+        result = await this.nitr0api.wallet.binance.getAddress('main', address);
+        return {
+          balance: new BigNumber(result.balance),
+          nonce: result.nonce,
+          tokens: result.tokens,
+        };
+      case 'trx':
+        result = await this.nitr0api.wallet.tron.getAddress('main', address);
+        return {
+          balance: new BigNumber(result.balance),
           tokens: result.tokens,
         };
       case 'niles':
@@ -449,14 +483,14 @@ export class OtkService {
     this.otk.identity = ident;
 
     // No need to wait
-    if(this.otk.biometrics) {
+    if (this.otk.biometrics) {
       // Store
       NativeBiometric.setCredentials({
         username: this.otk.identity,
         password: JSON.stringify(this.otk),
         server: 'nitr0gen.auth',
       });
-    }else{ 
+    } else {
       this.storage.set('otk', this.otk);
     }
   }
