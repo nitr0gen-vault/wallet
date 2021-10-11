@@ -50,7 +50,6 @@ export class SendComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
- 
     // BigNumber.config({ DECIMAL_PLACES: 0 });
     // BigNumber.config({ ROUNDING_MODE: 0 })
     const id = this.route.snapshot.params['id'];
@@ -126,208 +125,166 @@ export class SendComponent implements OnInit, OnDestroy {
     this.wallet = {} as any;
   }
 
+  private async chainIdSend(chainId: number) {
+    if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+      const amount = new BigNumber(
+        parseFloat(this.amount) * ETH_DECIMAL
+      ).decimalPlaces(0);
+
+      let txSig;
+      if (this.token) {
+        txSig = {
+          to: this.address,
+          from: this.wallet.address,
+          amount: '0x' + amount.toString(16),
+          nonce: this.wallet.nonce,
+          chainId,
+          gas: this.fees[this.selectedFee],
+          contractAddress: this.token.contract,
+        };
+      } else {
+        txSig = {
+          to: this.address,
+          from: this.wallet.address,
+          amount: '0x' + amount.toString(16),
+          nonce: this.wallet.nonce,
+          chainId,
+          gas: this.fees[this.selectedFee],
+        };
+      }
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
+      const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+      if (await this.noErrors(result)) {
+        const isTwoFa = result.$responses[0].twoFA;
+
+        this.loadingController.dismiss();
+        if (isTwoFa) {
+          this.getTwoFA(txSig, (r) => {
+            return r.hash;
+          });
+        } else {
+          this.procressSign(txSig, null, (r) => {
+            return r.hash;
+          });
+        }
+      }
+    }
+  }
+
+  private async bitcoinSend(network: 'test' | 'main') {
+    if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+      const amount = new BigNumber(
+        parseFloat(this.amount) * BTC_DECIMAL
+      ).decimalPlaces(0);
+
+      const txSig = await this.nitr0api.wallet.bitcoin.createTx(
+        network,
+        this.wallet.address,
+        this.address,
+        amount.toNumber()
+      );
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
+      const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+      if (await this.noErrors(result)) {
+        const isTwoFa = result.$responses[0].twoFA;
+
+        this.loadingController.dismiss();
+        if (isTwoFa) {
+          this.getTwoFA(txSig, (r) => {
+            return r.tx.hash;
+          });
+        } else {
+          this.procressSign(txSig, null, (r) => {
+            return r.tx.hash;
+          });
+        }
+      }
+    }
+  }
+
+  private async tronSend(network: 'main' | 'niles') {
+    if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+      const amount = new BigNumber(
+        parseFloat(this.amount) * TRX_DECIMAL
+      ).decimalPlaces(0);
+
+      const tx = await this.nitr0api.wallet.tron.createTx(
+        network,
+        this.address,
+        this.wallet.address,
+        amount.toNumber()
+      );
+
+      const txSig = {
+        to: this.address,
+        amount,
+        hex: tx,
+      };
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
+      const result = await this.otk.preflight(this.wallet.nId, txSig);
+
+      if (await this.noErrors(result)) {
+        const isTwoFa = result.$responses[0].twoFA;
+
+        this.loadingController.dismiss();
+        if (isTwoFa) {
+          this.getTwoFA(txSig, (r) => {
+            return r.txid;
+          });
+        } else {
+          this.procressSign(txSig, null, (r) => {
+            return r.txid;
+          });
+        }
+      }
+    }
+  }
+
   public async send() {
     switch (this.network) {
       case 'ropsten':
-        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-          const amount = new BigNumber(
-            parseFloat(this.amount) * ETH_DECIMAL
-          ).decimalPlaces(0);
-
-          let txSig;
-          if (this.token) {
-            txSig = {
-              to: this.address,
-              from: this.wallet.address,
-              amount: '0x' + amount.toString(16),
-              nonce: this.wallet.nonce,
-              chainId: 3,
-              gas: this.fees[this.selectedFee],
-              contractAddress: this.token.contract,
-            };
-          } else {
-            txSig = {
-              to: this.address,
-              from: this.wallet.address,
-              amount: '0x' + amount.toString(16),
-              nonce: this.wallet.nonce,
-              chainId: 3,
-              gas: this.fees[this.selectedFee],
-            };
-          }
-
-          console.log(txSig);
-
-          this.loading = await this.loadingController.create({
-            message: 'Requesting Signature',
-          });
-
-          this.loading.present();
-
-          const result = await this.otk.preflight(this.wallet.nId, txSig);
-
-          if (await this.noErrors(result)) {
-            const isTwoFa = result.$responses[0].twoFA;
-
-            this.loadingController.dismiss();
-            if (isTwoFa) {
-              this.getTwoFA(txSig, (r) => {
-                return r.hash;
-              });
-            } else {
-              this.procressSign(txSig, null, (r) => {
-                return r.hash;
-              });
-            }
-          }
-        }
-
+        await this.chainIdSend(3);
         break;
       case 'eth':
+        await this.chainIdSend(1);
         break;
       case 'tbnb':
-        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-          const amount = new BigNumber(
-            parseFloat(this.amount) * ETH_DECIMAL
-          ).decimalPlaces(0);
-
-          let txSig;
-          if (this.token) {
-            txSig = {
-              to: this.address,
-              from: this.wallet.address,
-              amount: '0x' + amount.toString(16),
-              nonce: this.wallet.nonce,
-              chainId: 97,
-              gas: this.fees[this.selectedFee],
-              contractAddress: this.token.contract,
-            };
-          } else {
-            txSig = {
-              to: this.address,
-              from: this.wallet.address,
-              amount: '0x' + amount.toString(16),
-              nonce: this.wallet.nonce,
-              chainId: 97,
-              gas: this.fees[this.selectedFee],
-            };
-          }
-
-          console.log(txSig);
-
-          this.loading = await this.loadingController.create({
-            message: 'Requesting Signature',
-          });
-
-          this.loading.present();
-
-          const result = await this.otk.preflight(this.wallet.nId, txSig);
-
-          if (await this.noErrors(result)) {
-            const isTwoFa = result.$responses[0].twoFA;
-
-            this.loadingController.dismiss();
-            if (isTwoFa) {
-              this.getTwoFA(txSig, (r) => {
-                return r.hash;
-              });
-            } else {
-              this.procressSign(txSig, null, (r) => {
-                return r.hash;
-              });
-            }
-          }
-        }
+        await this.chainIdSend(97);
         break;
       case 'bnb':
+        await this.chainIdSend(56);
         break;
       case 'tbtc':
-        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-          const amount = new BigNumber(
-            parseFloat(this.amount) * BTC_DECIMAL
-          ).decimalPlaces(0);
-
-          const txSig = await this.nitr0api.wallet.bitcoin.createTx(
-            'test',
-            this.wallet.address,
-            this.address,
-            amount.toNumber()
-          );
-
-          console.log(txSig);
-
-          this.loading = await this.loadingController.create({
-            message: 'Requesting Signature',
-          });
-
-          this.loading.present();
-
-          const result = await this.otk.preflight(this.wallet.nId, txSig);
-
-          if (await this.noErrors(result)) {
-            const isTwoFa = result.$responses[0].twoFA;
-
-            this.loadingController.dismiss();
-            if (isTwoFa) {
-              this.getTwoFA(txSig, (r) => {
-                return r.tx.hash;
-              });
-            } else {
-              this.procressSign(txSig, null, (r) => {
-                return r.tx.hash;
-              });
-            }
-          }
-        }
+        this.bitcoinSend('test');
         break;
       case 'btc':
+        this.bitcoinSend('main');
         break;
       case 'trx':
+        this.tronSend('main');
         break;
       case 'niles':
-        if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-          const amount = new BigNumber(
-            parseFloat(this.amount) * TRX_DECIMAL
-          ).decimalPlaces(0);
-
-          const tx = await this.nitr0api.wallet.tron.createTx(
-            'niles',
-            this.address,
-            this.wallet.address,
-            amount.toNumber()
-          );
-
-          const txSig = {
-            to: this.address,
-            amount,
-            hex: tx,
-          };
-
-          console.log(txSig);
-
-          this.loading = await this.loadingController.create({
-            message: 'Requesting Signature',
-          });
-
-          this.loading.present();
-
-          const result = await this.otk.preflight(this.wallet.nId, txSig);
-
-          if (await this.noErrors(result)) {
-            const isTwoFa = result.$responses[0].twoFA;
-
-            this.loadingController.dismiss();
-            if (isTwoFa) {
-              this.getTwoFA(txSig, (r) => {
-                return r.txid;
-              });
-            } else {
-              this.procressSign(txSig, null, (r) => {
-                return r.txid;
-              });
-            }
-          }
-        }
+        this.tronSend('niles');
         break;
     }
   }
