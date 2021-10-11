@@ -61,6 +61,7 @@ export enum Nitr0gen {
 export class OtkService {
   private otk: Otk;
   private wallet: Wallet[];
+  public rewardToken: Token;
   private loading: HTMLIonLoadingElement;
   public pnt = '';
 
@@ -342,15 +343,16 @@ export class OtkService {
 
   private fetching: number = 0;
   private async fetchBalances() {
-    if ((Date.now() - this.fetching) > 120000 ) {          
-      this.fetching = Date.now();      
+    if (Date.now() - this.fetching > 30000) {
+      this.fetching = Date.now();
+      let promises = [];
       for (let i = 0; i < this.wallet.length; i++) {
         const wallet = this.wallet[i];
 
         //}
         //this.wallet.forEach(async (wallet) => {
         // Get Balance (can we skip await so not stuck on timeouts)
-        const balances = this.fetchBalance(wallet.address, wallet.symbol).then(
+        promises.push(this.fetchBalance(wallet.address, wallet.symbol).then(
           async (balances) => {
             wallet.amount = balances.balance;
             wallet.nonce = balances.nonce;
@@ -364,6 +366,10 @@ export class OtkService {
                     token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
                 );
                 token.amount = rToken ? rToken.balance : 0;
+
+                if(wallet.symbol === "tbnb" && token.symbol === "ttv1") {
+                  this.rewardToken = token;
+                }
               });
 
               // Doing it like this is inefficient
@@ -389,8 +395,9 @@ export class OtkService {
             // Update local with latest
             await this.storage.set('wallet', await this.wallet);
           }
-        );
+        ));
       }
+      await Promise.all(promises);
       //this.fetching = false;
     }
   }
@@ -658,17 +665,23 @@ export class OtkService {
   public async sendTransaction<T>(tx: string, network: string): Promise<T> {
     switch (network) {
       case 'btc':
-        console.log('to implement');
+        return this.nitr0api.wallet.bitcoin.sendTransaction('main', tx);
       case 'tbtc':
         return this.nitr0api.wallet.bitcoin.sendTransaction('test', tx);
+      case 'bnb':
+        return this.nitr0api.wallet.binance.sendTransaction('main', tx);
       case 'tbnb':
         return this.nitr0api.wallet.binance.sendTransaction('test', tx);
+      case 'eth':
+        return this.nitr0api.wallet.ethereum.sendTransaction('main', tx);
       case 'ropsten':
         return this.nitr0api.wallet.ethereum.sendTransaction('test', tx);
       case 'shasta':
         return this.nitr0api.wallet.tron.sendTransaction('shasta', tx);
       case 'niles':
         return this.nitr0api.wallet.tron.sendTransaction('niles', tx);
+      case 'trx':
+        return this.nitr0api.wallet.tron.sendTransaction('main', tx);
     }
   }
 

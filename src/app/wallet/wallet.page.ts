@@ -175,7 +175,7 @@ export class WalletPage implements OnInit {
         case 'bnb':
         case 'tbnb':
           return wallet.amount.dividedBy(ETH_DECIMAL).toString();
-        case 'tron':
+        case 'trx':
         case 'niles':
           return wallet.amount.dividedBy(TRX_DECIMAL).toString();
       }
