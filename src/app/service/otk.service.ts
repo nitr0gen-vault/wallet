@@ -184,6 +184,8 @@ export class OtkService {
           this.wallet.push(w);
 
           await this.loader('Settling Locally');
+          // allow for faster lookup
+          this.fetching = 0;
           await this.storage.set('wallet', this.wallet);
         }
       }
@@ -338,55 +340,58 @@ export class OtkService {
     await this.storage.set('wallet', await this.getWallets());
   }
 
-  private fetching = false;
+  private fetching: number = 0;
   private async fetchBalances() {
-    if (!this.fetching) {
-      this.fetching = true;
+    if ((Date.now() - this.fetching) > 120000 ) {          
+      this.fetching = Date.now();      
       for (let i = 0; i < this.wallet.length; i++) {
         const wallet = this.wallet[i];
 
         //}
         //this.wallet.forEach(async (wallet) => {
-        // Get Balance
-        const balances = await this.fetchBalance(wallet.address, wallet.symbol);
-        wallet.amount = balances.balance;
-        wallet.nonce = balances.nonce;
+        // Get Balance (can we skip await so not stuck on timeouts)
+        const balances = this.fetchBalance(wallet.address, wallet.symbol).then(
+          async (balances) => {
+            wallet.amount = balances.balance;
+            wallet.nonce = balances.nonce;
 
-        // Procress Tokens
-        if (balances.tokens && wallet.tokens) {
-          // This loops local and updated
-          wallet.tokens.forEach((token) => {
-            const rToken = balances.tokens.find(
-              (rToken) =>
-                token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-            );
-            token.amount = rToken ? rToken.balance : 0;
-          });
+            // Procress Tokens
+            if (balances.tokens && wallet.tokens) {
+              // This loops local and updated
+              wallet.tokens.forEach((token) => {
+                const rToken = balances.tokens.find(
+                  (rToken) =>
+                    token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+                );
+                token.amount = rToken ? rToken.balance : 0;
+              });
 
-          // Doing it like this is inefficient
+              // Doing it like this is inefficient
 
-          // Now we need to loop remote and add? (or other way around)
-          balances.tokens.forEach((token) => {
-            const localToken = wallet.tokens.find(
-              (rToken) =>
-                token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-            );
-            if (!localToken) {
-              // Add
-              wallet.tokens.push({
-                amount: token.balance,
-                decimal: token.balance,
-                name: token.name,
-                symbol: token.symbol,
-                contract: token.address,
+              // Now we need to loop remote and add? (or other way around)
+              balances.tokens.forEach((token) => {
+                const localToken = wallet.tokens.find(
+                  (rToken) =>
+                    token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+                );
+                if (!localToken) {
+                  // Add
+                  wallet.tokens.push({
+                    amount: token.balance,
+                    decimal: token.balance,
+                    name: token.name,
+                    symbol: token.symbol,
+                    contract: token.address,
+                  });
+                }
               });
             }
-          });
-        }
-        // Update local with latest
-        await this.storage.set('wallet', await this.wallet);
-      } //);
-      this.fetching = false;
+            // Update local with latest
+            await this.storage.set('wallet', await this.wallet);
+          }
+        );
+      }
+      //this.fetching = false;
     }
   }
 
