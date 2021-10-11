@@ -22,6 +22,7 @@ import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 })
 export class SettingsPage implements OnInit {
   version = environment.version;
+  production = environment.production;
   uuid: string;
   pairCode: string;
 

@@ -115,16 +115,18 @@
       >Unhide All Wallets / Tokens</ion-button
     >
     <br />
-    <ion-list-header color="warning">
-      Danger Zone (Development Mode)</ion-list-header
-    >
-    <br />
-    <ion-button
-      (click)="reset()"
-      expand="block"
-      color="danger"
-      class="slim-down"
-      >Reset Local Wallet</ion-button
-    >
+    <ng-container *ngIf="!production">
+      <ion-list-header color="warning">
+        Danger Zone (Development Mode)</ion-list-header
+      >
+      <br />
+      <ion-button
+        (click)="reset()"
+        expand="block"
+        color="danger"
+        class="slim-down"
+        >Reset Local Wallet</ion-button
+      >
+    </ng-container>
   </ion-list>
 </ion-content>
