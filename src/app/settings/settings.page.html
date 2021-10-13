@@ -30,7 +30,7 @@
             ></qrcode>
             <ion-item class="pair">
               <ion-label position="floating">Pair Code</ion-label>
-              <ion-input [(ngModel)]="pairCode"></ion-input>
+              <ion-input [(ngModel)]="pairCode" type="number"></ion-input>
               <ion-icon
                 *ngIf="canScan()"
                 class="suffix-icon"
@@ -74,6 +74,7 @@
     <ion-item class="indent">
       <ion-label position="floating">Email Address</ion-label>
       <ion-input
+        type="email"
         (ionBlur)="blurSave('email')"
         [(ngModel)]="storage.settings.general.email"
         [readonly]="isSaving"
@@ -82,6 +83,7 @@
     <ion-item class="indent">
       <ion-label position="floating">Telephone Number</ion-label>
       <ion-input
+        type="number"
         (ionBlur)="blurSave('telephone')"
         [(ngModel)]="storage.settings.general.telephone"
         [readonly]="isSaving"
@@ -92,7 +94,7 @@
       <ion-label position="floating">Social Recovery</ion-label>
       <ion-input
         (ionBlur)="blurSave('recovery')"
-        type="text"
+        type="email"
         [(ngModel)]="storage.settings.recovery.email"
         [readonly]="isSaving"
       ></ion-input>
