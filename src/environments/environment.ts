@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  version: 'dev-2.9.2',
+  version: 'dev-2.12.0',
   api: {
     serverUrl: 'http://localhost:7000',
     //serverUrl: 'https://wallet-dot-notabox.nw.r.appspot.com',
