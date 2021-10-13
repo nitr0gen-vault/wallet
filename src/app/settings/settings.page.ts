@@ -23,6 +23,7 @@ export class SettingsPage implements OnInit {
   production = environment.production;
   uuid: string;
   pairCode: string;
+  noEmail = true;
 
   constructor(
     private alertController: AlertController,
@@ -36,6 +37,9 @@ export class SettingsPage implements OnInit {
 
   async ngOnInit() {
     this.uuid = await this.otk.getDeviceUuid();
+    if(this.storage.settings.general.email) {
+      this.noEmail = false;
+    }
   }
 
   public copyCode() {
@@ -159,6 +163,7 @@ export class SettingsPage implements OnInit {
               code
             );
             if (await this.noErrors(response)) {
+              this.noEmail = false;
               this.storage.save();
             } else {
               this.resetSettings();

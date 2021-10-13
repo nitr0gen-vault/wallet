@@ -56,7 +56,7 @@
         (click)="blurSave('security')"
         color="primary"
         [(ngModel)]="storage.settings.security.twofa"
-        [disabled]="isSaving"
+        [disabled]="isSaving || noEmail"
         slot="start"
       ></ion-checkbox>
     </ion-item>
@@ -66,7 +66,7 @@
         (click)="blurSave('security')"
         color="primary"
         [(ngModel)]="storage.settings.security.freeze"
-        [disabled]="isSaving"
+        [disabled]="isSaving || noEmail"
         slot="start"
       ></ion-checkbox>
     </ion-item>
@@ -87,6 +87,7 @@
         (ionBlur)="blurSave('telephone')"
         [(ngModel)]="storage.settings.general.telephone"
         [readonly]="isSaving"
+        [disabled]="noEmail"
       ></ion-input>
     </ion-item>
     <ion-list-header> Recovery </ion-list-header>
@@ -97,6 +98,7 @@
         type="email"
         [(ngModel)]="storage.settings.recovery.email"
         [readonly]="isSaving"
+        [disabled]="noEmail"
       ></ion-input>
       <ion-note>
         This person will help recovery your key access when registering a new
