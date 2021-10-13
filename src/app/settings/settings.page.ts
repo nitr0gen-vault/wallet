@@ -6,7 +6,7 @@ import { Component, OnInit } from '@angular/core';
 import { App } from '@capacitor/app';
 import { LoadingController, Platform } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
-import { StorageService } from '../service/storage.service';
+import { Settings, StorageService } from '../service/storage.service';
 import { environment } from '../../environments/environment';
 import { OtkService, Wallet } from '../service/otk.service';
 import { Device } from '@capacitor/device';
@@ -44,34 +44,235 @@ export class SettingsPage implements OnInit {
     this.clippy.copy(this.uuid);
   }
 
+  // Need to improve this method make it more re-usable
   public async blurSave(type: string) {
+    let code: string | null;
+    let response;
+
+    // So we don't overwrite on blur
+    if (this.isSaving) {
+      return;
+    }
+    this.isSaving = true;
+
+    //const storedSettings = this.storage.get("settings") as unknown as Settings;
     switch (type) {
       case 'security':
-        this.otk.updateIdentity('security', {
+        this.loading = await this.loadingControler.create({
+          message: 'Saving...',
+        });
+        await this.loading.present();
+        response = await this.otk.updateIdentityPreflight('security', {
           twoFA: this.storage.settings.security.twofa,
           freeze: this.storage.settings.security.freeze,
         });
+        await this.loading.dismiss();
+        if (await this.noErrors(response)) {
+          // We know we need the code!
+          code = await this.genericFACheck();
+          if (code) {
+            // Run the save
+            response = await this.otk.updateIdentitySave(
+              'security',
+              {
+                twoFA: this.storage.settings.security.twofa,
+                freeze: this.storage.settings.security.freeze,
+              },
+              code
+            );
+            if (await this.noErrors(response)) {
+              this.storage.save();
+            } else {
+              this.resetSettings();
+            }
+          }
+        } else {
+          this.resetSettings();
+        }
+
+        this.isSaving = false;
         break;
       case 'recovery':
-        this.otk.updateIdentity(
+        if (
+          !this.storage.settings.recovery.email ||
+          !(await this.isDifferent(type, this.storage.settings.recovery.email))
+        ) {
+          // cannot be null
+          this.resetSettings();
+          return;
+        }
+        this.loading = await this.loadingControler.create({
+          message: 'Saving...',
+        });
+        await this.loading.present();
+        response = await this.otk.updateIdentityPreflight(
           'recovery',
           this.storage.settings.recovery.email
         );
+        await this.loading.dismiss();
+        if (await this.noErrors(response)) {
+          // We know we need the code!
+          code = await this.genericFACheck();
+          if (code) {
+            // Run the save
+            response = await this.otk.updateIdentitySave(
+              'recovery',
+              this.storage.settings.recovery.email,
+              code
+            );
+            if (await this.noErrors(response)) {
+              this.storage.save();
+            } else {
+              this.resetSettings();
+            }
+          }
+        } else {
+          this.resetSettings();
+        }
+
+        this.isSaving = false;
         break;
       case 'email':
-        await this.otk.updateIdentity(
+        if (
+          !this.storage.settings.general.email ||
+          !(await this.isDifferent(type, this.storage.settings.general.email))
+        ) {
+          // cannot be null
+          this.resetSettings();
+          return;
+        }
+        this.loading = await this.loadingControler.create({
+          message: 'Saving...',
+        });
+        await this.loading.present();
+        response = await this.otk.updateIdentityPreflight(
           'email',
           this.storage.settings.general.email
         );
+        await this.loading.dismiss();
+        if (await this.noErrors(response)) {
+          // We know we need the code!
+          code = await this.genericFACheck();
+          if (code) {
+            // Run the save
+            response = await this.otk.updateIdentitySave(
+              'email',
+              this.storage.settings.general.email,
+              code
+            );
+            if (await this.noErrors(response)) {
+              this.storage.save();
+            } else {
+              this.resetSettings();
+            }
+          }
+        } else {
+          this.resetSettings();
+        }
+
+        this.isSaving = false;
         break;
       case 'telephone':
-        this.otk.updateIdentity(
+        if (
+          !this.storage.settings.general.telephone ||
+          !(await this.isDifferent(
+            type,
+            this.storage.settings.general.telephone
+          ))
+        ) {
+          // cannot be null
+          this.resetSettings();
+          return;
+        }
+        this.loading = await this.loadingControler.create({
+          message: 'Saving...',
+        });
+        await this.loading.present();
+        response = await this.otk.updateIdentityPreflight(
           'telephone',
           this.storage.settings.general.telephone
         );
+        await this.loading.dismiss();
+        if (await this.noErrors(response)) {
+          // We know we need the code!
+          code = await this.genericFACheck();
+          if (code) {
+            // Run the save
+            response = await this.otk.updateIdentitySave(
+              'telephone',
+              this.storage.settings.general.telephone,
+              code
+            );
+            if (await this.noErrors(response)) {
+              this.storage.save();
+            } else {
+              this.resetSettings();
+            }
+          }
+        } else {
+          this.resetSettings();
+        }
+        this.isSaving = false;
         break;
     }
-    this.storage.save();
+  }
+
+  private async isDifferent(type: string, value: string): Promise<boolean> {
+    const old = (await this.storage.get('settings')) as Settings;
+    switch (type) {
+      case 'email':
+        return old.general.email !== value;
+      case 'telephone':
+        return old.general.telephone !== value;
+      case 'recovery':
+        return old.recovery.email !== value;
+    }
+  }
+
+  private async resetSettings() {
+    // Need to reset the value
+    this.storage.settings = (await this.storage.get(
+      'settings'
+    )) as unknown as Settings;
+    this.isSaving = false;
+  }
+
+  public isSaving = false;
+  private genericFACheck(): Promise<string | null> {
+    return new Promise(async (resolve, reject) => {
+      const alert = await this.alertController.create({
+        header: 'Confirm 2FA',
+        message: `Please enter the security code sent to you.`,
+        inputs: [
+          {
+            name: 'code',
+            label: 'Enter 2FA',
+          },
+        ],
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: async (a: { code: string }) => {
+              // Need to reset the value
+              this.isSaving = false;
+              this.storage.settings = (await this.storage.get(
+                'settings'
+              )) as unknown as Settings;
+              resolve(null);
+            },
+          },
+          {
+            text: 'Confirm',
+            handler: async (a: { code: string }) => {
+              resolve(a.code);
+            },
+          },
+        ],
+      });
+
+      await alert.present();
+    });
   }
 
   private loading: HTMLIonLoadingElement;
@@ -230,7 +431,9 @@ export class SettingsPage implements OnInit {
 
   private async noErrors(response: any): Promise<boolean> {
     if (response.$summary?.errors) {
-      await this.loading.dismiss();
+      if (this.loading) {
+        await this.loading.dismiss();
+      }
       const alert = await this.alertController.create({
         header: 'Request Error',
         message: response.$summary?.errors[0]

@@ -53,18 +53,20 @@
     <ion-item>
       <ion-label>Enable Two Factor Authentication</ion-label>
       <ion-checkbox
-        (ionChange)="blurSave('security')"
+        (click)="blurSave('security')"
         color="primary"
         [(ngModel)]="storage.settings.security.twofa"
+        [disabled]="isSaving"
         slot="start"
       ></ion-checkbox>
     </ion-item>
     <ion-item>
       <ion-label>Freeze Wallet</ion-label>
       <ion-checkbox
-        (ionChange)="blurSave('security')"
+        (click)="blurSave('security')"
         color="primary"
         [(ngModel)]="storage.settings.security.freeze"
+        [disabled]="isSaving"
         slot="start"
       ></ion-checkbox>
     </ion-item>
@@ -74,6 +76,7 @@
       <ion-input
         (ionBlur)="blurSave('email')"
         [(ngModel)]="storage.settings.general.email"
+        [readonly]="isSaving"
       ></ion-input>
     </ion-item>
     <ion-item class="indent">
@@ -81,6 +84,7 @@
       <ion-input
         (ionBlur)="blurSave('telephone')"
         [(ngModel)]="storage.settings.general.telephone"
+        [readonly]="isSaving"
       ></ion-input>
     </ion-item>
     <ion-list-header> Recovery </ion-list-header>
@@ -90,6 +94,7 @@
         (ionBlur)="blurSave('recovery')"
         type="text"
         [(ngModel)]="storage.settings.recovery.email"
+        [readonly]="isSaving"
       ></ion-input>
       <ion-note>
         This person will help recovery your key access when registering a new

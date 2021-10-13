@@ -8,16 +8,24 @@ import { Injectable } from '@angular/core';
 import { lastValueFrom, from, Observable } from 'rxjs';
 import { Device } from '@capacitor/device';
 import { environment } from 'src/environments/environment';
+import { OtkService } from './service/otk.service';
 
 @Injectable()
 export class Interceptor implements HttpInterceptor {
   private uuid;
 
+  // Can we inject?
+  constructor(private otk: OtkService) {
+
+  }
+
   public async getUuid() {
-    if (!this.uuid) {
-      this.uuid = (await Device.getId()).uuid;
-    }
-    return this.uuid;
+    return await this.otk.getDeviceUuid();
+    // We actually want unique for every install this sometimes isn't
+    // if (!this.uuid) {
+    //   this.uuid = (await Device.getId()).uuid;
+    // }
+    // return this.uuid;
   }
 
   intercept(

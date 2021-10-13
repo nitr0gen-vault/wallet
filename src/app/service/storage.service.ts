@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { GetResult, Storage } from '@capacitor/storage';
 
-interface Settings {
+export interface Settings {
   general: {
     email: string;
     telephone: string;

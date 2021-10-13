@@ -5,7 +5,7 @@ import {
   TransactionHandler,
   IBaseTransaction,
 } from '@activeledger/sdk';
-import { Device } from '@capacitor/device';
+// import { Device } from '@capacitor/device';
 import { Injectable, Output } from '@angular/core';
 import { lastValueFrom } from 'rxjs/internal/lastValueFrom';
 import { StorageService } from './storage.service';
@@ -266,8 +266,27 @@ export class OtkService {
     };
   }
 
-  public async getDeviceUuid() {
-    return (await Device.getId()).uuid;
+  private uuidGenV4(a?: number): number {
+    return a
+      ? (a ^ ((Math.random() * 16) >> (a / 4))).toString(16)
+      : (([1e7] as any) + -1e3 + -4e3 + -8e3 + -1e11).replace(
+          /[018]/g,
+          this.uuidGenV4
+        );
+  }
+
+  private uuid: string;
+  public async getDeviceUuid(): Promise<string> {
+    if (!this.uuid) {
+      this.uuid = await this.storage.get('uuid', null);
+      if (!this.uuid) {
+        this.uuid = this.uuidGenV4().toString();
+        this.storage.set('uuid', this.uuid);
+      }
+    }
+    return this.uuid;
+    // We actually want unique for every install this sometimes isn't
+    //return (await Device.getId()).uuid;
   }
 
   private async generateOtk(): Promise<Otk> {
@@ -352,50 +371,52 @@ export class OtkService {
         //}
         //this.wallet.forEach(async (wallet) => {
         // Get Balance (can we skip await so not stuck on timeouts)
-        promises.push(this.fetchBalance(wallet.address, wallet.symbol).then(
-          async (balances) => {
-            wallet.amount = balances.balance;
-            wallet.nonce = balances.nonce;
+        promises.push(
+          this.fetchBalance(wallet.address, wallet.symbol).then(
+            async (balances) => {
+              wallet.amount = balances.balance;
+              wallet.nonce = balances.nonce;
 
-            // Procress Tokens
-            if (balances.tokens && wallet.tokens) {
-              // This loops local and updated
-              wallet.tokens.forEach((token) => {
-                const rToken = balances.tokens.find(
-                  (rToken) =>
-                    token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-                );
-                token.amount = rToken ? rToken.balance : 0;
+              // Procress Tokens
+              if (balances.tokens && wallet.tokens) {
+                // This loops local and updated
+                wallet.tokens.forEach((token) => {
+                  const rToken = balances.tokens.find(
+                    (rToken) =>
+                      token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+                  );
+                  token.amount = rToken ? rToken.balance : 0;
 
-                if(wallet.symbol === "tbnb" && token.symbol === "ttv1") {
-                  this.rewardToken = token;
-                }
-              });
+                  if (wallet.symbol === 'tbnb' && token.symbol === 'ttv1') {
+                    this.rewardToken = token;
+                  }
+                });
 
-              // Doing it like this is inefficient
+                // Doing it like this is inefficient
 
-              // Now we need to loop remote and add? (or other way around)
-              balances.tokens.forEach((token) => {
-                const localToken = wallet.tokens.find(
-                  (rToken) =>
-                    token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
-                );
-                if (!localToken) {
-                  // Add
-                  wallet.tokens.push({
-                    amount: token.balance,
-                    decimal: token.balance,
-                    name: token.name,
-                    symbol: token.symbol,
-                    contract: token.address,
-                  });
-                }
-              });
+                // Now we need to loop remote and add? (or other way around)
+                balances.tokens.forEach((token) => {
+                  const localToken = wallet.tokens.find(
+                    (rToken) =>
+                      token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+                  );
+                  if (!localToken) {
+                    // Add
+                    wallet.tokens.push({
+                      amount: token.balance,
+                      decimal: token.balance,
+                      name: token.name,
+                      symbol: token.symbol,
+                      contract: token.address,
+                    });
+                  }
+                });
+              }
+              // Update local with latest
+              await this.storage.set('wallet', await this.wallet);
             }
-            // Update local with latest
-            await this.storage.set('wallet', await this.wallet);
-          }
-        ));
+          )
+        );
       }
       await Promise.all(promises);
       //this.fetching = false;
@@ -569,7 +590,10 @@ export class OtkService {
     return await txHandler.signTransaction(txBody, key);
   }
 
-  public async updateIdentity(entry: string, cValue: any): Promise<any> {
+  public async updateIdentityPreflight(
+    entry: string,
+    cValue: any
+  ): Promise<any> {
     const txHandler = new TransactionHandler();
     const key = await this.getKey();
 
@@ -578,11 +602,41 @@ export class OtkService {
       $tx: {
         $namespace: Nitr0gen.Namespace,
         $contract: Nitr0gen.Onboard,
-        $entry: `update.${entry}`,
+        $entry: `update.${entry}.preflight`,
         $i: {
           otk: {
             $stream: key.identity,
             [entry]: cValue,
+          },
+        },
+      },
+      $sigs: {},
+    };
+
+    // Sign Transaction & Send
+    const tx = await txHandler.signTransaction(txBody, key);
+    return await lastValueFrom(this.nitr0api.security(tx));
+  }
+
+  public async updateIdentitySave(
+    entry: string,
+    cValue: any,
+    code: string
+  ): Promise<any> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.Onboard,
+        $entry: `update.${entry}.save`,
+        $i: {
+          otk: {
+            $stream: key.identity,
+            [entry]: cValue,
+            code,
           },
         },
       },
