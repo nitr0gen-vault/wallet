@@ -3,13 +3,11 @@ import {
   SupportedFormat,
 } from '@capacitor-community/barcode-scanner';
 import { Component, OnInit } from '@angular/core';
-import { App } from '@capacitor/app';
 import { LoadingController, Platform } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
 import { Settings, StorageService } from '../service/storage.service';
 import { environment } from '../../environments/environment';
 import { OtkService, Wallet } from '../service/otk.service';
-import { Device } from '@capacitor/device';
 import { Keyboard } from '@capacitor/keyboard';
 import { ClipboardService } from 'ngx-clipboard';
 import { Nitr0genApiService } from '../service/nitr0gen-api.service';
@@ -37,7 +35,7 @@ export class SettingsPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.uuid = (await Device.getId()).uuid;
+    this.uuid = await this.otk.getDeviceUuid();
   }
 
   public copyCode() {

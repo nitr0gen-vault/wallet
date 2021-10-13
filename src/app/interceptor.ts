@@ -6,7 +6,6 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, from, Observable } from 'rxjs';
-import { Device } from '@capacitor/device';
 import { environment } from 'src/environments/environment';
 import { OtkService } from './service/otk.service';
 
