@@ -76,6 +76,14 @@ export class OtkService {
     (async () => {
       await this.getKey();
 
+      if (environment.browser) {
+        // Make sure they have all the wallets the popup may have closed
+        // Long term move the creation to the background
+        window.onfocus = () => {
+          this.hasAllWallets();
+        };
+      }
+
       // Setup default for browser
       let bioAvail: AvailableResult = {
         isAvailable: false,
@@ -157,38 +165,10 @@ export class OtkService {
           }
         }
 
-        console.log('now gettnig wallet check');
-        if (!(await this.getWallets()).length) {
-          // Now to Create wallets
-          await this.loader('Creating Bitcoin Wallet');
-          let w = await this.createWallet(
-            environment.production ? 'btc' : 'tbtc'
-          );
-          this.wallet.push(w);
-
-          await this.loader('Creating Ethereum Wallet');
-          w = await this.createWallet(
-            environment.production ? 'eth' : 'ropsten'
-          );
-          this.wallet.push(w);
-
-          await this.loader('Creating Binance Wallet');
-          w = await this.createWallet(environment.production ? 'bnb' : 'tbnb');
-          this.wallet.push(w);
-
-          await this.loader('Creating Binance Reward Simulator');
-          w = await this.createWallet('tbnb');
-          this.wallet.push(w);
-
-          await this.loader('Creating Tron Wallet');
-          w = await this.createWallet(environment.production ? 'trx' : 'niles');
-          this.wallet.push(w);
-
-          await this.loader('Settling Locally');
-          // allow for faster lookup
-          this.fetching = 0;
-          await this.storage.set('wallet', this.wallet);
-        }
+        // Make sure we have our wallets
+        await this.hasAllWallets();
+        this.fetching = 0;
+        //}
       }
       if (this.loading) {
         this.loading.dismiss();
@@ -197,6 +177,37 @@ export class OtkService {
       console.log('Local Wallets:');
       console.log(this.wallet);
     })();
+  }
+
+  public async hasAllWallets() {
+    // Instead of needing them all to load, Lets check for each one
+    await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
+    await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
+    await this.bootstrapWallet(environment.production ? 'bnb' : 'tbnb');
+    await this.bootstrapWallet(environment.production ? 'trx' : 'niles');
+
+    if (
+      !environment.browser ||
+      (environment.browser && !environment.production)
+    ) {
+      await this.bootstrapWallet('tbnb');
+    }
+  }
+
+  private async bootstrapWallet(symbol: string): Promise<boolean> {
+    if (!(await this.walletHasSymbol(symbol))) {
+      await this.loader('Creating ' + symbol.toUpperCase() + ' Wallet');
+      let w = await this.createWallet(symbol);
+      this.wallet.push(w);
+      await this.storage.set('wallet', this.wallet);
+      return true;
+    }
+    return false;
+  }
+
+  private async walletHasSymbol(symbol: string): Promise<boolean> {
+    const wallet = await this.getWallets();
+    return wallet.some((e) => e.symbol === symbol);
   }
 
   private getBioSafe(): Promise<Boolean> {
