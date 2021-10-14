@@ -3,12 +3,11 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false,
-  browser: false,
-  version: 'dev-2.12.0',
+  production: true,
+  browser: true,
+  version: '2.12.1',
   api: {
-    serverUrl: 'http://localhost:7000',
-    //serverUrl: 'https://wallet-dot-notabox.nw.r.appspot.com',
+    serverUrl: 'https://nitr0gen.oa.r.appspot.com',
   },
 };
 

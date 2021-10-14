@@ -8,6 +8,7 @@ import {
 } from '@capacitor/push-notifications';
 import { Platform } from '@ionic/angular';
 import { OtkService } from './service/otk.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +19,12 @@ export class AppComponent implements OnInit {
   constructor(private otk: OtkService, private platform: Platform) {}
 
   ngOnInit() {
+
+    // Extension sizes
+    if(environment.browser) {
+      document.getElementsByTagName("html")[0].classList.add("browser");
+    }
+
     if (!this.platform.is('mobileweb') && !this.platform.is('desktop')) {
       // Request permission to use push notifications
       // iOS will prompt user and return if they granted permission or not

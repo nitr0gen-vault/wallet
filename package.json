@@ -10,7 +10,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "firebase": "ng build -c production && firebase deploy"
+    "firebase": "ng build -c production && firebase deploy",
+    "browser": "ng build -c browser.production && cp manifest.json ./www"
   },
   "private": true,
   "dependencies": {

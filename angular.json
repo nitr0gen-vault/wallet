@@ -50,11 +50,19 @@
             "namedChunks": true
           },
           "configurations": {
-            "chrome": {
+            "browser": {
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
+                  "with": "src/environments/environment.browser.ts"
+                }
+              ]
+            },
+            "browser.production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.browser.prod.ts"
                 }
               ],
               "optimization": {
@@ -113,6 +121,9 @@
             "browserTarget": "app:build"
           },
           "configurations": {
+            "browser": {
+              "browserTarget": "app:build:browser"
+            },
             "production": {
               "browserTarget": "app:build:production"
             },
