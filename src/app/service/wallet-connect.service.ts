@@ -9,7 +9,7 @@ import WalletConnect from '@walletconnect/client';
 //   SessionTypes,
 //   SequenceTypes,
 // } from '@walletconnect/types';
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { OtkService, Wallet } from './otk.service';
 import { Browser } from '@capacitor/browser';
@@ -40,6 +40,7 @@ export class WalletConnectService {
   fees: FeePricing;
   feeSymbol = '';
   selectedFee = 'medium';
+  disconnected: EventEmitter<boolean> = new EventEmitter();
 
   // Need a better way maybe events / observables
   // However we can piggy back of Angular
@@ -177,8 +178,13 @@ export class WalletConnectService {
   private loading: HTMLIonLoadingElement;
 
   public async disconnect() {
-    this.requests.session = null;
-    await this.client.killSession();
+    if (this.client) {
+      // need to resolve the event handling better
+      this.disconnected.emit(true);
+      this.requests.session = null;
+      await this.client.killSession();
+      this.client = null;
+    }
   }
 
   public connect(uri: string) {
@@ -237,7 +243,7 @@ export class WalletConnectService {
         const wallets = await this.otk.getWallets();
         const accounts = new Set(); // Quick solution to duplicate wallet bug
         for (let i = wallets.length; i--; ) {
-          const chainId = this.symbol2ChainId(wallets[i].symbol);
+          //const chainId = this.symbol2ChainId(wallets[i].symbol);
           if (this.checkWalletSessionId(wallets[i], sessionChainId)) {
             //if (chainId === sessionChainId.toString()) {
             accounts.add(wallets[i].address);
@@ -458,9 +464,8 @@ export class WalletConnectService {
       }
       console.log('Disconnecting');
       console.log(payload);
-
       // Delete connector
-      this.client = null;
+      this.disconnect();
     });
   }
 
@@ -499,7 +504,8 @@ export class WalletConnectService {
       from: this.requests.eth_sendTransaction.event.request.params[0].from,
       amount: this.requests.eth_sendTransaction.event.request.params[0].value,
       nonce:
-        this.requests.eth_sendTransaction.event.request.params[0].nonce || this.wallet.nonce,
+        this.requests.eth_sendTransaction.event.request.params[0].nonce ||
+        this.wallet.nonce,
       gas:
         this.fees[this.selectedFee] ||
         this.requests.eth_sendTransaction.event.request.params[0].gas,
@@ -612,7 +618,7 @@ export class WalletConnectService {
       console.log(rawTxHex);
 
       // results we need to ass responses
-      this.loading.message = 'Sending to network';      
+      this.loading.message = 'Sending to network';
 
       let reply = (await this.otk.sendTransaction(
         rawTxHex,
@@ -814,8 +820,16 @@ export class WalletConnectService {
 
   private symbol2Eth(symbol: string): boolean {
     switch (symbol) {
+      case 'bnb':
       case 'tbnb':
       case 'ropsten':
+      case 'ht':
+      case 'htt':
+      case 'xdai':
+      case 'okt':
+      case 'ftm':
+      case 'matic':
+      case 'avax':
         return true;
       default:
         return false;
@@ -824,10 +838,28 @@ export class WalletConnectService {
 
   private symbol2ChainId(symbol: string): number | null {
     switch (symbol) {
+      case 'eth':
+        return 1;
+      case 'ropsten':
+        return 3;
+      case 'bnb':
+        return 56;
       case 'tbnb':
         return 97;
-      case 'ropsten':
-        return 1;
+      case 'ht':
+        return 128;
+      case 'htt':
+        return 256;
+      case 'xdai':
+        return 10;
+      case 'okt':
+        return 66;
+      case 'ftm':
+        return 250;
+      case 'matic':
+        return 137;
+      case 'avax':
+        return 43114;
       //return 3;
       default:
         return null;

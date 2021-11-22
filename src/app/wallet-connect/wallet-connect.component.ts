@@ -33,24 +33,30 @@ export class WalletConnectComponent implements OnInit {
   public walletConnectUri: string;
 
   constructor(
-    private actionSheetController: ActionSheetController,
-    private router: Router,
-    private clippy: ClipboardService,
-    private toast: ToastController,
-    private alert: AlertController,
+    // private actionSheetController: ActionSheetController,
+    // private router: Router,
+    // private clippy: ClipboardService,
+    // private toast: ToastController,
+    // private alert: AlertController,
     public otk: OtkService,
-    private nitr0gen: Nitr0genApiService,
-    private alertController: AlertController,
-    private loadingController: LoadingController,
-    private storage: StorageService,
+    // private nitr0gen: Nitr0genApiService,
+    // private alertController: AlertController,
+    // private loadingController: LoadingController,
+    // private storage: StorageService,
     private platform: Platform,
     public walletConnect: WalletConnectService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.walletConnect.disconnected.subscribe((disconnected) => {
+      if(disconnected) {
+        this.walletConnectUri = "";
+      }
+    })
+  }
 
   public async connect(uri?: string) {
-    this.walletConnect.connect(uri ? uri : this.walletConnectUri);
+    this.walletConnect.connect(uri ? uri : this.walletConnectUri);    
   }
 
   public async disconnect() {
