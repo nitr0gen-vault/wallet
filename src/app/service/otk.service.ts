@@ -346,7 +346,19 @@ export class OtkService {
 
   public async getWallets(): Promise<Wallet[]> {
     if (!this.wallet) {
-      this.wallet = (await this.storage.get('wallet', [])) as Wallet[];
+      const wallet = (await this.storage.get('wallet', [])) as Wallet[];
+      this.wallet = [];
+
+      // Filter wallet (merge issue, Probably best to filter in other locations but this is the final step but will be a drain on performance)
+      // keep the order shouldn't be that long to check for reverse lookup
+      const unique = {};
+      for (let i = 0; i < wallet.length; i++) {
+        const w = wallet[i];
+        if (!unique[w.address]) {
+          this.wallet.push(w);
+          unique[w.address] = true;
+        }
+      }
     }
     // Let this one do it's thing in the background
     this.fetchBalances();
