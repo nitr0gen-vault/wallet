@@ -1,5 +1,4 @@
 // For now use this, Later switch out to Ionic Storage
-import KeyValueStorage from 'keyvaluestorage';
 import WalletConnect from '@walletconnect/client';
 
 // V2
@@ -18,8 +17,6 @@ import {
   FeePricing,
   Nitr0genApiService,
 } from './nitr0gen-api.service';
-import { type } from 'os';
-import { async } from 'rxjs';
 
 export const SUPPORTED_CHAINS = [
   // mainnets
@@ -181,8 +178,9 @@ export class WalletConnectService {
     if (this.client) {
       // need to resolve the event handling better
       this.disconnected.emit(true);
-      this.requests.session = null;
+      this.requests.session = null;      
       await this.client.killSession();
+      localStorage.removeItem('walletconnect');
       this.client = null;
     }
   }
@@ -508,7 +506,9 @@ export class WalletConnectService {
         this.wallet.nonce,
       gas:
         this.fees[this.selectedFee] ||
-        this.requests.eth_sendTransaction.event.request.params[0].gas,
+        this.requests.eth_sendTransaction.event.request.params[0].gasPrice,
+      gasLimit:
+        this.requests.eth_sendTransaction.event.request.params[0].gas || null,
       data: this.requests.eth_sendTransaction.event.request.params[0].data,
       chainId,
     };
