@@ -23,6 +23,11 @@ const routes: Routes = [
           import('../settings/settings.module').then((m) => m.SettingsPageModule),
       },
       {
+        path: 'contracts',
+        loadChildren: () =>
+          import('../contracts/contracts.module').then((m) => m.ContractsModule),
+      },
+      {
         path: 'status/:id',
         loadChildren: () =>
           import('../status/status.module').then((m) => m.StatusComponentModule),

@@ -16,6 +16,7 @@
   "private": true,
   "dependencies": {
     "@activeledger/sdk": "^1.3.4",
+    "@angular-devkit/core": "^13.0.3",
     "@angular/common": "~12.2.7",
     "@angular/core": "~12.2.7",
     "@angular/forms": "~12.2.7",

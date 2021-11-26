@@ -1,0 +1,100 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title> Nitr0gen Vault </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list [inset]="true">
+    <ion-list-header> Token Network </ion-list-header>
+    <ion-item class="indent">
+      <ion-select
+        [(ngModel)]="contract.network"
+        [value]="contract.network"
+        interface="popover"
+      >
+        <ion-select-option value="bnb">Binance Smart Chain</ion-select-option>
+        <ion-select-option value="tbnb"
+          >Test Binance Smart Chain</ion-select-option
+        >
+      </ion-select>
+    </ion-item>
+    <ion-list-header> Token Details </ion-list-header>
+    <ion-item class="indent">
+      <ion-label position="floating">Token Name</ion-label>
+      <ion-input [(ngModel)]="contract.details.name"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Token Symbol</ion-label>
+      <ion-input [(ngModel)]="contract.details.symbol"></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Token Decimal</ion-label>
+      <ion-input
+        [(ngModel)]="contract.details.decimal"
+        max="18"
+        type="number"
+      ></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Initial Supply</ion-label>
+      <ion-input
+        [(ngModel)]="contract.details.initialSupply"
+        type="number"
+      ></ion-input>
+    </ion-item>
+    <ion-item class="indent">
+      <ion-label position="floating">Total Supply</ion-label>
+      <ion-input
+        disabled
+        [(ngModel)]="contract.details.totalSupply"
+        type="number"
+      ></ion-input>
+    </ion-item>
+    <ion-list-header> Token Features </ion-list-header>
+    <ion-item>
+      <ion-label>Verifible Source Code</ion-label>
+      <ion-checkbox
+        disabled
+        color="primary"
+        [(ngModel)]="contract.features.verifable"
+        slot="start"
+      ></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label>Remove Copyright</ion-label>
+      <ion-checkbox
+        disabled
+        color="primary"
+        [(ngModel)]="contract.features.copyright"
+        slot="start"
+      ></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label>Burnable</ion-label>
+      <ion-checkbox
+        disabled
+        color="primary"
+        [(ngModel)]="contract.features.burnable"
+        slot="start"
+      ></ion-checkbox>
+    </ion-item>
+    <ion-item>
+      <ion-label>Mintable</ion-label>
+      <ion-checkbox
+        disabled
+        color="primary"
+        [(ngModel)]="contract.features.mintable"
+        slot="start"
+      ></ion-checkbox>
+    </ion-item>
+    <br />
+    <ion-button
+      (click)="create()"
+      expand="block"
+      color="secondary"
+      class="slim-down"
+      >Create Token</ion-button
+    >
+  </ion-list>
+</ion-content>

@@ -245,6 +245,20 @@ class Binance {
       )
     );
   }
+
+  public async createContract(
+    network: BinanceNetwork,
+    contract: any
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(
+        `${environment.api.serverUrl}/binance/${network}/bep20/create`,
+        {
+          contract,
+        }
+      )
+    );
+  }
 }
 
 type EthereumNetwork = 'test' | 'main';
