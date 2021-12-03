@@ -127,27 +127,30 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async chainIdSend(chainId: number) {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-      const amount = new BigNumber(
-        parseFloat(this.amount) * ETH_DECIMAL
-      ).decimalPlaces(0);
-
       let txSig;
       if (this.token) {
+        let amount = new BigNumber(
+          parseFloat(this.amount) * (10 ** this.token.decimal || 18)
+        ).decimalPlaces(0);
+
         txSig = {
           to: this.address,
           from: this.wallet.address,
           amount: '0x' + amount.toString(16),
-          nonce: this.wallet.nonce,
+          nonce: await this.otk.getNonce(this.wallet, this.network),
           chainId,
           gas: this.fees[this.selectedFee],
           contractAddress: this.token.contract,
         };
       } else {
+        let amount = new BigNumber(
+          parseFloat(this.amount) * ETH_DECIMAL
+        ).decimalPlaces(0);
         txSig = {
           to: this.address,
           from: this.wallet.address,
           amount: '0x' + amount.toString(16),
-          nonce: this.wallet.nonce,
+          nonce: await this.otk.getNonce(this.wallet, this.network),
           chainId,
           gas: this.fees[this.selectedFee],
         };
@@ -349,6 +352,7 @@ export class SendComponent implements OnInit, OnDestroy {
         rawTxHex,
         this.network
       )) as any;
+      this.otk.setNoncePending(this.wallet);
 
       console.log(reply);
 

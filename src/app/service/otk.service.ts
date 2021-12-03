@@ -365,12 +365,12 @@ export class OtkService {
     return this.wallet;
   }
 
-  public async refreshWallets(): Promise<Wallet[]> {
+  public async refreshWallets(force = false): Promise<Wallet[]> {
     if (!this.wallet) {
       this.wallet = (await this.storage.get('wallet', [])) as Wallet[];
     }
     // Let this one do it's thing in the background
-    await this.fetchBalances();
+    await this.fetchBalances(force);
     return this.wallet;
   }
 
@@ -384,8 +384,8 @@ export class OtkService {
   }
 
   private fetching: number = 0;
-  private async fetchBalances() {
-    if (Date.now() - this.fetching > 30000) {
+  private async fetchBalances(force = false) {
+    if (force || Date.now() - this.fetching > 30000) {
       this.fetching = Date.now();
       let promises = [];
       for (let i = 0; i < this.wallet.length; i++) {
@@ -436,7 +436,7 @@ export class OtkService {
                 });
               }
               // Update local with latest
-              await this.storage.set('wallet', await this.wallet);
+              await this.storage.set('wallet', this.wallet);
             }
           )
         );
@@ -444,6 +444,70 @@ export class OtkService {
       await Promise.all(promises);
       //this.fetching = false;
     }
+  }
+
+  public async setNoncePending(wallet: Wallet): Promise<void> {
+    wallet.nonce = null;
+    // Await needed?
+    await this.storage.set('wallet', this.wallet);
+  }
+
+  public async getNonce(wallet: Wallet, networkSymbol: string): Promise<number> {
+    if (Number.isInteger(wallet.nonce)) {
+      return wallet.nonce;
+    }
+
+    // If null we have done that on purpose to fetch again
+    console.log(wallet)    
+    const latestState = await this.fetchBalance(wallet.address, networkSymbol);
+    console.log(latestState);
+
+    // TODO copy pasted code, Make reusable
+    wallet.amount = latestState.balance;
+    wallet.nonce = latestState.nonce;
+
+    // Need the nonce asap so lets run the wallet update later
+    setTimeout(async () => {
+      // Procress Tokens
+      if (latestState.tokens && wallet.tokens) {
+        // This loops local and updated
+        wallet.tokens.forEach((token) => {
+          const rToken = latestState.tokens.find(
+            (rToken) =>
+              token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+          );
+          token.amount = rToken ? rToken.balance : 0;
+
+          if (wallet.symbol === 'tbnb' && token.symbol === 'ttv1') {
+            this.rewardToken = token;
+          }
+        });
+
+        // Doing it like this is inefficient
+
+        // Now we need to loop remote and add? (or other way around)
+        latestState.tokens.forEach((token) => {
+          const localToken = wallet.tokens.find(
+            (rToken) =>
+              token.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+          );
+          if (!localToken) {
+            // Add
+            wallet.tokens.push({
+              amount: token.balance,
+              decimal: token.balance,
+              name: token.name,
+              symbol: token.symbol,
+              contract: token.address,
+            });
+          }
+        });
+      }
+      // Update local with latest
+      this.storage.set('wallet', await this.wallet);
+    }, 100);
+
+    return wallet.nonce;
   }
 
   private async fetchBalance(
@@ -740,6 +804,7 @@ export class OtkService {
   }
 
   public async sendTransaction<T>(tx: string, network: string): Promise<T> {
+    this.fetchBalances(true);
     switch (network) {
       case 'btc':
         return this.nitr0api.wallet.bitcoin.sendTransaction('main', tx);
@@ -759,6 +824,45 @@ export class OtkService {
         return this.nitr0api.wallet.tron.sendTransaction('niles', tx);
       case 'trx':
         return this.nitr0api.wallet.tron.sendTransaction('main', tx);
+    }
+  }
+
+  public async sendContractTransaction<T>(
+    tx: string,
+    source: string,
+    name: string,
+    network: string
+  ): Promise<T> {
+    this.fetchBalances(true);
+    switch (network) {
+      case 'bnb':
+        return this.nitr0api.wallet.binance.sendContractTransaction(
+          'main',
+          tx,
+          source,
+          name
+        );
+      case 'tbnb':
+        return this.nitr0api.wallet.binance.sendContractTransaction(
+          'test',
+          tx,
+          source,
+          name
+        );
+      case 'eth':
+        return this.nitr0api.wallet.ethereum.sendContractTransaction(
+          'main',
+          tx,
+          source,
+          name
+        );
+      case 'ropsten':
+        return this.nitr0api.wallet.ethereum.sendContractTransaction(
+          'test',
+          tx,
+          source,
+          name
+        );
     }
   }
 

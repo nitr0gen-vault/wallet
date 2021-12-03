@@ -624,6 +624,7 @@ export class WalletConnectService {
         rawTxHex,
         this.wallet.symbol
       )) as any;
+      this.otk.setNoncePending(this.wallet);
 
       console.log(reply);
 
