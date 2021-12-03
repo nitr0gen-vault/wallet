@@ -17,6 +17,7 @@
         <ion-select-option value="tbnb"
           >Test Binance Smart Chain</ion-select-option
         >
+        <ion-select-option value="ropsten">Ropsten</ion-select-option>
       </ion-select>
     </ion-item>
     <ion-list-header> Token Details </ion-list-header>
@@ -43,16 +44,22 @@
         type="number"
       ></ion-input>
     </ion-item>
-    <ion-item class="indent">
+    <ion-list-header> Token Features </ion-list-header>
+    <ion-item class="indent-cbt">
+      <ion-checkbox
+        value="on"
+        color="primary"
+        #enableTotalSupply
+        slot="start"
+      ></ion-checkbox>
       <ion-label position="floating">Total Supply</ion-label>
       <ion-input
-        disabled
+        [disabled]="!enableTotalSupply.checked"
         [(ngModel)]="contract.details.totalSupply"
         type="number"
       ></ion-input>
     </ion-item>
-    <ion-list-header> Token Features </ion-list-header>
-    <ion-item>
+    <!-- <ion-item>
       <ion-label>Verifible Source Code</ion-label>
       <ion-checkbox
         disabled
@@ -60,8 +67,8 @@
         [(ngModel)]="contract.features.verifable"
         slot="start"
       ></ion-checkbox>
-    </ion-item>
-    <ion-item>
+    </ion-item> -->
+    <!-- <ion-item>
       <ion-label>Remove Copyright</ion-label>
       <ion-checkbox
         disabled
@@ -69,11 +76,10 @@
         [(ngModel)]="contract.features.copyright"
         slot="start"
       ></ion-checkbox>
-    </ion-item>
+    </ion-item> -->
     <ion-item>
       <ion-label>Burnable</ion-label>
       <ion-checkbox
-        disabled
         color="primary"
         [(ngModel)]="contract.features.burnable"
         slot="start"
@@ -82,19 +88,27 @@
     <ion-item>
       <ion-label>Mintable</ion-label>
       <ion-checkbox
-        disabled
         color="primary"
         [(ngModel)]="contract.features.mintable"
         slot="start"
       ></ion-checkbox>
     </ion-item>
-    <br />
+    <br>
     <ion-button
       (click)="create()"
       expand="block"
       color="secondary"
       class="slim-down"
       >Create Token</ion-button
+    >
+    <br>
+    <ion-button
+      (click)="download()"
+      [disabled]="!contractSource.source"
+      expand="block"
+      color="primary"
+      class="slim-down"
+      >Download Source</ion-button
     >
   </ion-list>
 </ion-content>

@@ -123,8 +123,8 @@ class Wallet {
           name,
           symbol,
           decimal,
-          address
-        },        
+          address,
+        },
       })
     );
   }
@@ -246,6 +246,24 @@ class Binance {
     );
   }
 
+  public async sendContractTransaction(
+    network: BinanceNetwork,
+    hex: string,
+    source: string,
+    name: string
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(
+        `${environment.api.serverUrl}/binance/${network}/bep20/send`,
+        {
+          hex,
+          source,
+          name,
+        }
+      )
+    );
+  }
+
   public async createContract(
     network: BinanceNetwork,
     contract: any
@@ -293,6 +311,38 @@ class Ethereum {
         `${environment.api.serverUrl}/ethereum/${network}/send`,
         {
           hex,
+        }
+      )
+    );
+  }
+
+  public async sendContractTransaction(
+    network: EthereumNetwork,
+    hex: string,
+    source: string,
+    name: string
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(
+        `${environment.api.serverUrl}/ethereum/${network}/erc20/send`,
+        {
+          hex,
+          source,
+          name,
+        }
+      )
+    );
+  }
+
+  public async createContract(
+    network: EthereumNetwork,
+    contract: any
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(
+        `${environment.api.serverUrl}/ethereum/${network}/erc20/create`,
+        {
+          contract,
         }
       )
     );

@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { Nitr0genApiService } from '../service/nitr0gen-api.service';
-import { OtkService, Wallet } from '../service/otk.service';
+import { OtkService, Token, Wallet } from '../service/otk.service';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 @Component({
   selector: 'app-contracts',
@@ -19,6 +20,8 @@ export class ContractsComponent implements OnInit {
       mintable: false,
     },
     details: {
+      name: '',
+      symbol: '',
       decimal: 18,
     },
   };
@@ -36,30 +39,64 @@ export class ContractsComponent implements OnInit {
 
   wallet: Wallet;
 
+  contractSource: {
+    bytcode: any;
+    abi: any;
+    tx: any;
+    source: string;
+  } = {
+    bytcode: null,
+    abi: null,
+    tx: null,
+    source: null,
+  };
+
+  async download() {
+    console.log(this.contractSource.source);
+    await Filesystem.writeFile({
+      path: `token/${this.contract.details.symbol}`,
+      data: JSON.stringify(this.contractSource.source),
+      directory: Directory.Documents,
+      encoding: Encoding.UTF8,
+    });
+  }
+
   async create() {
     const wallets = await this.otk.getWallets();
     for (let i = wallets.length; i--; ) {
-      if (wallets[i].symbol === 'tbnb') {
+      if (wallets[i].symbol === this.contract.network) {
         this.wallet = wallets[i];
         break;
       }
     }
 
     console.log(this.contract);
-    const x = await this.nitr0api.wallet.binance.createContract(
-      'test',
-      this.contract
-    );
-    console.log(x);
-
-    const fees = await this.nitr0api.wallet.binance.getFee('test');
+    let fees;
+    switch (this.wallet.symbol) {
+      case 'tbnb':
+        this.contractSource = await this.nitr0api.wallet.binance.createContract(
+          'test',
+          this.contract
+        );
+        fees = await this.nitr0api.wallet.binance.getFee('test');
+        break;
+      case 'ropsten':
+        this.contractSource =
+          await this.nitr0api.wallet.ethereum.createContract(
+            'test',
+            this.contract
+          );
+        fees = await this.nitr0api.wallet.ethereum.getFee('test');
+        break;
+    }
+    console.log(this.contractSource);
 
     const txSig = {
       from: this.wallet.address,
-      nonce: this.wallet.nonce,
+      nonce: await this.otk.getNonce(this.wallet, this.wallet.symbol),
       gas: fees.medium,
       gasLimit: 2000000,
-      data: x.tx.data,
+      data: this.contractSource.tx.data,
       chainId: 97,
     };
 
@@ -159,10 +196,13 @@ export class ContractsComponent implements OnInit {
       // results we need to ass responses
       this.loading.message = 'Sending to network';
 
-      let reply = (await this.otk.sendTransaction(
+      let reply = (await this.otk.sendContractTransaction(
         rawTxHex,
+        this.contractSource.source,
+        this.contract.details.name,
         this.wallet.symbol
       )) as any;
+      this.otk.setNoncePending(this.wallet);
 
       console.log(reply);
 
@@ -170,6 +210,23 @@ export class ContractsComponent implements OnInit {
 
       const txId = reply.hash;
       if (txId) {
+        // Add token to the wallet!!!!!
+        if (reply.contractAddress) {
+          // More Copy Paste
+          const result = await this.nitr0api.wallet.addToken(
+            this.wallet.address,
+            this.contract.details.name,
+            this.contract.details.symbol,
+            parseInt(this.contract.details.decimal),
+            reply.contractAddress
+          );
+
+          if (result) {
+            this.wallet.tokens.push(result as Token);
+            this.otk.refreshWallets();
+          }
+        }
+
         //this.allow('eth_sendTransaction', txId);
         await this.transactionCompleted(txId);
       } else {
