@@ -1,7 +1,11 @@
 import { Capacitor } from '@capacitor/core';
 import { Component, OnInit } from '@angular/core';
 import { Browser } from '@capacitor/browser';
-import { AlertController, LoadingController } from '@ionic/angular';
+import {
+  AlertController,
+  LoadingController,
+  ToastController,
+} from '@ionic/angular';
 import { Nitr0genApiService } from '../service/nitr0gen-api.service';
 import { OtkService, Token, Wallet } from '../service/otk.service';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
@@ -33,7 +37,8 @@ export class ContractsComponent implements OnInit {
     private nitr0api: Nitr0genApiService,
     private otk: OtkService,
     private alertController: AlertController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private toast: ToastController
   ) {}
 
   ngOnInit() {}
@@ -56,14 +61,21 @@ export class ContractsComponent implements OnInit {
     console.log(this.contractSource.source);
     if (Capacitor.isNativePlatform()) {
       // TODO Check iOS Download
-      console.log(
-        await Filesystem.writeFile({
-          path: `Download/token-${this.contract.details.symbol}.json`,
-          data: JSON.stringify(this.contractSource.source),
-          directory: Directory.ExternalStorage,
-          encoding: Encoding.UTF8,
-        })
-      );
+      const result = await Filesystem.writeFile({
+        path: `Download/token-${this.contract.details.symbol}.json`,
+        data: JSON.stringify(this.contractSource.source),
+        directory: Directory.ExternalStorage,
+        encoding: Encoding.UTF8,
+      });      
+
+      const toast = await this.toast.create({
+        message: `Downloaded ${result.uri}`,
+        duration: 2000,
+        position: 'middle',
+        translucent: true,
+        animated: true,
+      });
+      toast.present();
     } else {
       // Browser
       const a = document.createElement('a');
