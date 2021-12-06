@@ -52,7 +52,6 @@ export class WalletPage implements OnInit {
     private alertController: AlertController,
     private loadingController: LoadingController,
     private storage: StorageService,
-    private platform: Platform,
     public walletConnect: WalletConnectService
   ) {}
 
@@ -280,7 +279,7 @@ export class WalletPage implements OnInit {
           text: 'View',
           icon: 'open',
           handler: async () => {
-            await this.openExplorer(wallet);
+            await this.openExplorer(wallet, token.contract);
           },
         },
         {
@@ -307,46 +306,46 @@ export class WalletPage implements OnInit {
     //console.log('onDidDismiss resolved with role', role);
   }
 
-  private async openExplorer(wallet: Wallet) {
+  private async openExplorer(wallet: Wallet, overide?:string) {
     switch (wallet.symbol) {
       case 'tbtc':
         await Browser.open({
-          url: `https://www.blockchain.com/btc-testnet/address/${wallet.address}`,
+          url: `https://www.blockchain.com/btc-testnet/address/${overide || wallet.address}`,
         });
         break;
       case 'btc':
         await Browser.open({
-          url: `https://www.blockchain.com/btc/address/${wallet.address}`,
+          url: `https://www.blockchain.com/btc/address/${overide || wallet.address}`,
         });
         break;
       case 'ropsten':
         await Browser.open({
-          url: `https://ropsten.etherscan.io/address/${wallet.address}`,
+          url: `https://ropsten.etherscan.io/address/${overide || wallet.address}`,
         });
         break;
       case 'eth':
         await Browser.open({
-          url: `https://etherscan.io/address/${wallet.address}`,
+          url: `https://etherscan.io/address/${overide || wallet.address}`,
         });
         break;
       case 'bnb':
         await Browser.open({
-          url: `https://bscscan.com/address/${wallet.address}`,
+          url: `https://bscscan.com/address/${overide || wallet.address}`,
         });
         break;
       case 'tbnb':
         await Browser.open({
-          url: `https://testnet.bscscan.com/address/${wallet.address}`,
+          url: `https://testnet.bscscan.com/address/${overide || wallet.address}`,
         });
         break;
       case 'tron':
         await Browser.open({
-          url: `https://tronscan.org/#/address/${wallet.address}`,
+          url: `https://tronscan.org/#/address/${overide || wallet.address}`,
         });
         break;
       case 'niles':
         await Browser.open({
-          url: `https://nile.tronscan.org/#/address/${wallet.address}`,
+          url: `https://nile.tronscan.org/#/address/${overide || wallet.address}`,
         });
         break;
     }
