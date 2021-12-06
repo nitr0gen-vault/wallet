@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { Component, OnInit } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { AlertController, LoadingController } from '@ionic/angular';
@@ -53,15 +54,36 @@ export class ContractsComponent implements OnInit {
 
   async download() {
     console.log(this.contractSource.source);
-    await Filesystem.writeFile({
-      path: `token/${this.contract.details.symbol}`,
-      data: JSON.stringify(this.contractSource.source),
-      directory: Directory.Documents,
-      encoding: Encoding.UTF8,
-    });
+    if (Capacitor.isNativePlatform()) {
+      // TODO Check iOS Download
+      console.log(
+        await Filesystem.writeFile({
+          path: `Download/token-${this.contract.details.symbol}.json`,
+          data: JSON.stringify(this.contractSource.source),
+          directory: Directory.ExternalStorage,
+          encoding: Encoding.UTF8,
+        })
+      );
+    } else {
+      // Browser
+      const a = document.createElement('a');
+      const blob = new Blob([JSON.stringify(this.contractSource.source)], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      a.setAttribute('href', url);
+      a.setAttribute('download', `token-${this.contract.details.symbol}.json`);
+      a.click();
+    }
   }
 
   async create() {
+    this.loading = await this.loadingController.create({
+      message: 'Compiling Contract',
+    });
+
+    this.loading.present();
+
     const wallets = await this.otk.getWallets();
     for (let i = wallets.length; i--; ) {
       if (wallets[i].symbol === this.contract.network) {
@@ -100,11 +122,7 @@ export class ContractsComponent implements OnInit {
       chainId: 97,
     };
 
-    this.loading = await this.loadingController.create({
-      message: 'Requesting Signature',
-    });
-
-    this.loading.present();
+    this.loading.message = 'Requesting Signature';
 
     const result = await this.otk.preflight(this.wallet.nId, txSig);
 
@@ -274,6 +292,8 @@ export class ContractsComponent implements OnInit {
           hash;
         break;
     }
+
+    // Let this wallet refresh to get balance however it may not be indexed so maybe wait
 
     const alert = await this.alertController.create({
       header: 'Transaction Complete',
