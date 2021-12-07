@@ -2,7 +2,7 @@
     "name": "Nitr0gen Vault",
     "version": "2.2.0",
     "homepage_url": "https://nitr0gen-web.web.app/",
-    "description": "Nitr0gen Vault with rewards",
+    "description": "The foremost flexible, secure wallet with personal crypto ownership",
     "icons": {
         "16": "assets/icon/favicon-16x16.png",
         "32": "assets/icon/favicon-32x32.png",
@@ -25,7 +25,6 @@
         "default_popup": "index.html"
     },
     "permissions": [
-        "notifications",
         "storage"
     ],
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; connect-src https://nitr0gen.oa.r.appspot.com"

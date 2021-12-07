@@ -80,7 +80,9 @@ export class OtkService {
         // Make sure they have all the wallets the popup may have closed
         // Long term move the creation to the background
         window.onfocus = () => {
-          this.hasAllWallets();
+          if (this.otk) {
+            this.hasAllWallets();
+          }
         };
       }
 
