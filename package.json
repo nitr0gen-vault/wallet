@@ -1,8 +1,8 @@
 {
-  "name": "nitr-0-gen-wallet",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "name": "nitr0gen-wallet",
+  "version": "2.2.0",
+  "author": "Adam Walker",
+  "homepage": "https://nitr0gen-web.web.app/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

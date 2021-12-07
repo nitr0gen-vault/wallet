@@ -186,11 +186,14 @@ export class OtkService {
     await this.bootstrapWallet(environment.production ? 'bnb' : 'tbnb');
     await this.bootstrapWallet(environment.production ? 'trx' : 'niles');
 
-    if (
-      !environment.browser ||
-      (environment.browser && !environment.production)
-    ) {
+    if (environment.production) {
+      // Keep Solidity testnets for now (Can hide in app)
+      // if (
+      //   !environment.browser ||
+      //   (environment.browser && !environment.production)
+      // ) {
       await this.bootstrapWallet('tbnb');
+      await this.bootstrapWallet('ropsten');
     }
   }
 
@@ -452,13 +455,16 @@ export class OtkService {
     await this.storage.set('wallet', this.wallet);
   }
 
-  public async getNonce(wallet: Wallet, networkSymbol: string): Promise<number> {
+  public async getNonce(
+    wallet: Wallet,
+    networkSymbol: string
+  ): Promise<number> {
     if (Number.isInteger(wallet.nonce)) {
       return wallet.nonce;
     }
 
     // If null we have done that on purpose to fetch again
-    console.log(wallet)    
+    console.log(wallet);
     const latestState = await this.fetchBalance(wallet.address, networkSymbol);
     console.log(latestState);
 
