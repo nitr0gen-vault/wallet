@@ -5,7 +5,7 @@
 export const environment = {
   production: true,
   browser: true,
-  version: 'Browser-Dev-2.2.0',
+  version: 'Browser-2.2.0',
   api: {
     serverUrl: 'https://nitr0gen.oa.r.appspot.com',
   },

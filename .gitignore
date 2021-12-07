@@ -20,6 +20,9 @@ $RECYCLE.BIN/
 log.txt
 npm-debug.log*
 
+/.angular
+/.firebase
+/.gradle
 /.idea
 /.ionic
 /.sass-cache

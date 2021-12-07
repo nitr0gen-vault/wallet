@@ -1,7 +1,7 @@
 {
     "name": "Nitr0gen Vault",
-    "version": "2.12.1",
-    "homepage_url": "https://www.nitr0gen.com",
+    "version": "2.2.0",
+    "homepage_url": "https://nitr0gen-web.web.app/",
     "description": "Nitr0gen Vault with rewards",
     "icons": {
         "16": "assets/icon/favicon-16x16.png",
