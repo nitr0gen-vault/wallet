@@ -50,6 +50,7 @@ export enum Nitr0gen {
   Namespace = 'notabox.keys',
   Onboard = 'df9e4e242c58cc6a03ca1679f007c7a04cad72c97fdb74bdfe9a4e1688077a79',
   Create = 'c278818b9f10d5f18381a711827e344d583f7ecf446cdfb4b92016b308838a72',
+  CloseCliam = '95191594af0ac9c197f0719bfce8d7f8788ef45e40133b841df3e143f4992cde',
   DiffConsensus = 'a9711259f9c0322c6eb1cca4c0baf1b460266be79c5c0f78cf1602a8476e0744',
   Preflight = '2a43dc59d4cfa0f8a5ad143247db41dd6524cc9e1a18fd7a00f14d0ca7bbac62',
   Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b',
@@ -181,7 +182,7 @@ export class OtkService {
     })();
   }
 
-  public async hasAllWallets() {
+  public async hasAllWallets() {    
     // Instead of needing them all to load, Lets check for each one
     await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
     await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
@@ -201,11 +202,25 @@ export class OtkService {
 
   private async bootstrapWallet(symbol: string): Promise<boolean> {
     if (!(await this.walletHasSymbol(symbol))) {
-      await this.loader('Creating ' + symbol.toUpperCase() + ' Wallet');
-      let w = await this.createWallet(symbol);
-      this.wallet.push(w);
-      await this.storage.set('wallet', this.wallet);
-      return true;
+      let w: Wallet;
+      // Check for any open ones (not a security risk)
+      const open = await this.nitr0api.wallet.open(symbol) as Wallet;
+      if (open) {
+        await this.loader('Claiming ' + symbol.toUpperCase() + ' Wallet');
+        if(this.attachWallet(open.nId)) {
+          w = open;
+        }
+      } else {
+        // If none available create realtime
+        await this.loader('Creating ' + symbol.toUpperCase() + ' Wallet');
+        w = await this.createWallet(symbol);
+      }
+
+      if (w) {
+        this.wallet.push(w);
+        await this.storage.set('wallet', this.wallet);
+        return true;
+      }
     }
     return false;
   }
@@ -248,6 +263,10 @@ export class OtkService {
       });
       await alert.present();
     });
+  }
+
+  private async attachWallet(nId: string): Promise<boolean> {
+    return await this.nitr0api.wallet.close(nId, await this.closeClaim(nId));
   }
 
   private async createWallet(
@@ -669,6 +688,34 @@ export class OtkService {
             $stream: key.identity,
             address,
             hashes,
+          },
+        },
+        $o: {
+          key: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return await txHandler.signTransaction(txBody, key);
+  }
+
+  private async closeClaim(nId: string): Promise<IBaseTransaction> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.CloseCliam,
+        $i: {
+          owner: {
+            $stream: key.identity,
           },
         },
         $o: {

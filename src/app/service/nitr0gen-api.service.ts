@@ -93,6 +93,27 @@ class Wallet {
     this.tron = new Tron(http);
   }
 
+  public async open(symbol: string) {
+    try {
+    return await lastValueFrom(
+      this.http.post<any>(`${environment.api.serverUrl}/wallet/open`, {
+        symbol,
+      })
+    );
+    }catch{
+      return false;
+    }
+  }
+
+  public async close(nId: string, ntx: IBaseTransaction): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(`${environment.api.serverUrl}/wallet/close`, {
+        nId,
+        ntx,
+      })
+    );
+  }
+
   public async add(
     symbol: string,
     nId: string,
