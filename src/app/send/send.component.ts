@@ -18,6 +18,7 @@ import { OtkService, Wallet, Token } from '../service/otk.service';
 import { StorageService } from '../service/storage.service';
 import { BigNumber } from 'bignumber.js';
 import { AlertController, LoadingController, Platform } from '@ionic/angular';
+import { CryptoAddressValidator } from './validator';
 
 @Component({
   selector: 'app-send',
@@ -37,6 +38,7 @@ export class SendComponent implements OnInit, OnDestroy {
   feeSymbol = '';
   selectedFee = 'medium';
   loading: any;
+  gasFreeTransaction: boolean = false;
 
   constructor(
     private router: Router,
@@ -454,6 +456,29 @@ export class SendComponent implements OnInit, OnDestroy {
       ],
     });
     alert.present();
+  }
+
+  private checkedAddress: string;
+  public async checkAddress(address: string) {
+    if (address !== this.checkedAddress) {
+      this.checkedAddress = address; //could use (input)=$event
+      if (
+        CryptoAddressValidator.test(
+          address,
+          this.network,
+          this.network === 'tbtc' ? true : false
+        )
+      ) {
+        // Valid address, We should see if it is an internal one for gas free transfers
+        if(await this.nitr0api.wallet.isInternal(address,this.network)) {
+          console.log("Internal Address!")
+          this.gasFreeTransaction = true;
+        }else{
+          console.log("external Address :(");
+          this.gasFreeTransaction = false;
+        }
+      }
+    }
   }
 
   private async networkError(reply: any) {

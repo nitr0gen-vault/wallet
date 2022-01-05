@@ -93,14 +93,27 @@ class Wallet {
     this.tron = new Tron(http);
   }
 
+  public async isInternal(address: string, symbol: string) {
+    try {
+      return await lastValueFrom(
+        this.http.post<any>(`${environment.api.serverUrl}/wallet/internal`, {
+          address,
+          symbol,
+        })
+      );
+    } catch {
+      return false;
+    }
+  }
+
   public async open(symbol: string) {
     try {
-    return await lastValueFrom(
-      this.http.post<any>(`${environment.api.serverUrl}/wallet/open`, {
-        symbol,
-      })
-    );
-    }catch{
+      return await lastValueFrom(
+        this.http.post<any>(`${environment.api.serverUrl}/wallet/open`, {
+          symbol,
+        })
+      );
+    } catch {
       return false;
     }
   }

@@ -35,6 +35,7 @@
     <ion-item class="indent">
       <ion-label position="floating">To Address</ion-label>
       <ion-input
+        (keyup)="checkAddress(address)"
         placeholder="0x"
         [(ngModel)]="address"
         [ngStyle]="{ 'margin-right': canScan() ? '12px' : 'auto' }"
@@ -56,23 +57,34 @@
       <ion-label position="floating">Contract Address</ion-label>
       <ion-input readonly [value]="token.contract"></ion-input>
     </ion-item>
-    <ng-container *ngIf="displayFees.low">
-      <ion-list-header> Transaction Fee </ion-list-header>
-      <ion-segment [(ngModel)]="selectedFee">
-        <ion-segment-button value="low">
-          <ion-label>Slow</ion-label>
-          <ion-label>{{ displayFees.low }} {{ feeSymbol }}</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="medium">
-          <ion-label>Normal</ion-label>
-          <ion-label>{{ displayFees.medium }} {{ feeSymbol }}</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="high">
-          <ion-label>Fast</ion-label>
-          <ion-label>{{ displayFees.high }} {{ feeSymbol }}</ion-label>
-        </ion-segment-button>
-      </ion-segment>
+    <ng-container *ngIf="gasFreeTransaction">
+        <ion-list-header> Gas FREE Transaction Detected</ion-list-header> 
+        <ion-item color="secondary" (click)="gasFreeTransaction=false">
+          <ion-label>
+            Or pay the fee
+          </ion-label>
+        </ion-item>             
     </ng-container>
+    <ng-container *ngIf="!gasFreeTransaction">
+      <ng-container *ngIf="displayFees.low">
+        <ion-list-header> Transaction Fee </ion-list-header>
+        <ion-segment [(ngModel)]="selectedFee">
+          <ion-segment-button value="low">
+            <ion-label>Slow</ion-label>
+            <ion-label>{{ displayFees.low }} {{ feeSymbol }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="medium">
+            <ion-label>Normal</ion-label>
+            <ion-label>{{ displayFees.medium }} {{ feeSymbol }}</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="high">
+            <ion-label>Fast</ion-label>
+            <ion-label>{{ displayFees.high }} {{ feeSymbol }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </ng-container>
+    </ng-container>
+
     <!-- <ion-item class="indent" *ngIf="storage.settings.security.twofa">
       <ion-label position="floating">Two Factor Auth</ion-label>
       <ion-input
