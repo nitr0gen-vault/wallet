@@ -58,7 +58,7 @@ export class WalletPage implements OnInit {
   wallets: any[];
   async ngOnInit() {
     this.wallets = await this.otk.getWallets();
-  }  
+  }
 
   async refresh() {
     // TODO Refresh settings? (in case of multiple devices)
@@ -95,13 +95,13 @@ export class WalletPage implements OnInit {
                 });
                 await loading.present();
                 //this.loading.message = 'Refreshing Wallets';
-                this.otk.forceKeyIdentity(pair.nId);
+                await this.otk.forceKeyIdentity(pair.nId);
 
                 // get wallets from api
                 const cache = await this.nitr0gen.wallet.cache(
                   await this.otk.getDeviceUuid()
                 );
-                
+
                 const tmpWallets: Wallet[] = [];
 
                 // We are now on a different uuid (possibly)
@@ -127,9 +127,12 @@ export class WalletPage implements OnInit {
 
                   // settings
                   this.storage.settings.general.email = cache.settings.email;
-                  this.storage.settings.recovery.email = cache.settings.recovery;
-                  this.storage.settings.security.freeze = cache.settings.security.freeze;
-                  this.storage.settings.security.twofa = cache.settings.security.twoFA;
+                  this.storage.settings.recovery.email =
+                    cache.settings.recovery;
+                  this.storage.settings.security = {
+                    freeze: cache.settings.security?.freeze || false,
+                    twofa: cache.settings.security?.twoFA || false,
+                  };
                   this.storage.settings.general.telephone =
                     cache.settings.telephone;
 
@@ -150,8 +153,8 @@ export class WalletPage implements OnInit {
     }
   }
 
-  symbolIconError($event) {  
-    $event.srcElement.src='/assets/crypto/icons/generic.svg';
+  symbolIconError($event) {
+    $event.srcElement.src = '/assets/crypto/icons/generic.svg';
   }
 
   public async restart() {
@@ -306,21 +309,27 @@ export class WalletPage implements OnInit {
     //console.log('onDidDismiss resolved with role', role);
   }
 
-  private async openExplorer(wallet: Wallet, overide?:string) {
+  private async openExplorer(wallet: Wallet, overide?: string) {
     switch (wallet.symbol) {
       case 'tbtc':
         await Browser.open({
-          url: `https://www.blockchain.com/btc-testnet/address/${overide || wallet.address}`,
+          url: `https://www.blockchain.com/btc-testnet/address/${
+            overide || wallet.address
+          }`,
         });
         break;
       case 'btc':
         await Browser.open({
-          url: `https://www.blockchain.com/btc/address/${overide || wallet.address}`,
+          url: `https://www.blockchain.com/btc/address/${
+            overide || wallet.address
+          }`,
         });
         break;
       case 'ropsten':
         await Browser.open({
-          url: `https://ropsten.etherscan.io/address/${overide || wallet.address}`,
+          url: `https://ropsten.etherscan.io/address/${
+            overide || wallet.address
+          }`,
         });
         break;
       case 'eth':
@@ -335,7 +344,9 @@ export class WalletPage implements OnInit {
         break;
       case 'tbnb':
         await Browser.open({
-          url: `https://testnet.bscscan.com/address/${overide || wallet.address}`,
+          url: `https://testnet.bscscan.com/address/${
+            overide || wallet.address
+          }`,
         });
         break;
       case 'tron':
@@ -345,7 +356,9 @@ export class WalletPage implements OnInit {
         break;
       case 'niles':
         await Browser.open({
-          url: `https://nile.tronscan.org/#/address/${overide || wallet.address}`,
+          url: `https://nile.tronscan.org/#/address/${
+            overide || wallet.address
+          }`,
         });
         break;
     }

@@ -626,19 +626,18 @@ export class OtkService {
     }
   }
 
-  public forceKeyIdentity(ident: string) {
+  public async forceKeyIdentity(ident: string) {
     this.otk.identity = ident;
 
-    // No need to wait
     if (this.otk.biometrics) {
       // Store
-      NativeBiometric.setCredentials({
+      await NativeBiometric.setCredentials({
         username: this.otk.identity,
         password: JSON.stringify(this.otk),
         server: 'nitr0gen.auth',
       });
     } else {
-      this.storage.set('otk', this.otk);
+      await this.storage.set('otk', this.otk);
     }
   }
 

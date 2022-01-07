@@ -361,7 +361,7 @@ export class SettingsPage implements OnInit {
                         // Maybe need to "filter" the retuns from the api
                         if (results?.$streams?.updated[0].id == nId.nId) {
                           this.loading.message = 'Refreshing Wallets';
-                          this.otk.forceKeyIdentity(nId.nId);
+                          await this.otk.forceKeyIdentity(nId.nId);
 
                           // get wallets from api
                           const cache = await this.nitr0gen.wallet.cache(
@@ -395,9 +395,9 @@ export class SettingsPage implements OnInit {
                             this.storage.settings.recovery.email =
                               cache.settings.recovery;
                             this.storage.settings.security.freeze =
-                              cache.settings.security.freeze;
+                              cache.settings.security?.freeze;
                             this.storage.settings.security.twofa =
-                              cache.settings.security.twoFA;
+                              cache.settings.security?.twoFA;
                             this.storage.settings.general.telephone =
                               cache.settings.telephone;
 
@@ -406,6 +406,7 @@ export class SettingsPage implements OnInit {
 
                             await this.otk.getWallets();
                             await this.otk.refreshWallets();
+                            this.noEmail = false;
                           }
                         }
                         this.loading.dismiss();

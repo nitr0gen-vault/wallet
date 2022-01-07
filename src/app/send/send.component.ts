@@ -129,6 +129,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async chainIdSend(chainId: number) {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
       let txSig;
       if (this.token) {
         let amount = new BigNumber(
@@ -156,13 +163,7 @@ export class SendComponent implements OnInit, OnDestroy {
           chainId,
           gas: this.fees[this.selectedFee],
         };
-      }
-
-      this.loading = await this.loadingController.create({
-        message: 'Requesting Signature',
-      });
-
-      this.loading.present();
+      }     
 
       const result = await this.otk.preflight(this.wallet.nId, txSig);
 
@@ -185,6 +186,14 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async bitcoinSend(network: 'test' | 'main') {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
+
       const amount = new BigNumber(
         parseFloat(this.amount) * BTC_DECIMAL
       ).decimalPlaces(0);
@@ -195,12 +204,6 @@ export class SendComponent implements OnInit, OnDestroy {
         this.address,
         amount.toNumber()
       );
-
-      this.loading = await this.loadingController.create({
-        message: 'Requesting Signature',
-      });
-
-      this.loading.present();
 
       const result = await this.otk.preflight(this.wallet.nId, txSig);
 
@@ -223,6 +226,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async tronSend(network: 'main' | 'niles') {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
       const amount = new BigNumber(
         parseFloat(this.amount) * TRX_DECIMAL
       ).decimalPlaces(0);
@@ -239,12 +249,6 @@ export class SendComponent implements OnInit, OnDestroy {
         amount,
         hex: tx,
       };
-
-      this.loading = await this.loadingController.create({
-        message: 'Requesting Signature',
-      });
-
-      this.loading.present();
 
       const result = await this.otk.preflight(this.wallet.nId, txSig);
 
