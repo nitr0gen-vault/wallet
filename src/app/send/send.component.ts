@@ -38,7 +38,9 @@ export class SendComponent implements OnInit, OnDestroy {
   feeSymbol = '';
   selectedFee = 'medium';
   loading: any;
-  gasFreeTransaction: boolean = false;
+  addressIsInternal = false;
+  gasFreeTransaction = false;
+  gasFreeExternal = false;
 
   constructor(
     private router: Router,
@@ -129,7 +131,6 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async chainIdSend(chainId: number) {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-
       this.loading = await this.loadingController.create({
         message: 'Requesting Signature',
       });
@@ -163,7 +164,7 @@ export class SendComponent implements OnInit, OnDestroy {
           chainId,
           gas: this.fees[this.selectedFee],
         };
-      }     
+      }
 
       const result = await this.otk.preflight(this.wallet.nId, txSig);
 
@@ -186,13 +187,11 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async bitcoinSend(network: 'test' | 'main') {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-
       this.loading = await this.loadingController.create({
         message: 'Requesting Signature',
       });
 
       this.loading.present();
-
 
       const amount = new BigNumber(
         parseFloat(this.amount) * BTC_DECIMAL
@@ -226,7 +225,6 @@ export class SendComponent implements OnInit, OnDestroy {
 
   private async tronSend(network: 'main' | 'niles') {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
-
       this.loading = await this.loadingController.create({
         message: 'Requesting Signature',
       });
@@ -270,31 +268,40 @@ export class SendComponent implements OnInit, OnDestroy {
   }
 
   public async send() {
-    switch (this.network) {
-      case 'ropsten':
-        await this.chainIdSend(3);
-        break;
-      case 'eth':
-        await this.chainIdSend(1);
-        break;
-      case 'tbnb':
-        await this.chainIdSend(97);
-        break;
-      case 'bnb':
-        await this.chainIdSend(56);
-        break;
-      case 'tbtc':
-        this.bitcoinSend('test');
-        break;
-      case 'btc':
-        this.bitcoinSend('main');
-        break;
-      case 'trx':
-        this.tronSend('main');
-        break;
-      case 'niles':
-        this.tronSend('niles');
-        break;
+    if (!this.gasFreeTransaction) {
+      switch (this.network) {
+        case 'ropsten':
+          await this.chainIdSend(3);
+          break;
+        case 'eth':
+          await this.chainIdSend(1);
+          break;
+        case 'tbnb':
+          await this.chainIdSend(97);
+          break;
+        case 'bnb':
+          await this.chainIdSend(56);
+          break;
+        case 'tbtc':
+          this.bitcoinSend('test');
+          break;
+        case 'btc':
+          this.bitcoinSend('main');
+          break;
+        case 'trx':
+          this.tronSend('main');
+          break;
+        case 'niles':
+          this.tronSend('niles');
+          break;
+      }
+    } else {
+      if(this.gasFreeExternal) {
+        // Invite / Send Process TBD
+        console.log("Invite to Sending free " + this.network);
+      }else{
+        console.log("Sending free " + this.network);
+      }
     }
   }
 
@@ -474,12 +481,12 @@ export class SendComponent implements OnInit, OnDestroy {
         )
       ) {
         // Valid address, We should see if it is an internal one for gas free transfers
-        if(await this.nitr0api.wallet.isInternal(address,this.network)) {
-          console.log("Internal Address!")
-          this.gasFreeTransaction = true;
-        }else{
-          console.log("external Address :(");
-          this.gasFreeTransaction = false;
+        if (await this.nitr0api.wallet.isInternal(address, this.network)) {
+          console.log('Internal Address!');
+          this.addressIsInternal = this.gasFreeTransaction = true;
+        } else {
+          console.log('external Address :(');
+          this.addressIsInternal = this.gasFreeTransaction = false;
         }
       }
     }

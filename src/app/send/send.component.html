@@ -57,7 +57,7 @@
       <ion-label position="floating">Contract Address</ion-label>
       <ion-input readonly [value]="token.contract"></ion-input>
     </ion-item>
-    <ng-container *ngIf="gasFreeTransaction">
+    <ng-container *ngIf="gasFreeTransaction && !gasFreeExternal">
         <ion-list-header> Gas FREE Transaction Detected</ion-list-header> 
         <ion-item color="secondary" (click)="gasFreeTransaction=false">
           <ion-label>
@@ -82,7 +82,18 @@
             <ion-label>{{ displayFees.high }} {{ feeSymbol }}</ion-label>
           </ion-segment-button>
         </ion-segment>
-      </ng-container>
+        <ion-item color="secondary" *ngIf="address && !addressIsInternal">
+          <ion-label  (click)="gasFreeExternal=true; gasFreeTransaction=true">
+            Or transfer gas free
+          </ion-label>
+        </ion-item>
+      </ng-container>      
+    </ng-container>
+    <ng-container *ngIf="gasFreeExternal && gasFreeTransaction">
+      <ion-item class="indent">
+        <ion-label position="floating">Email Address</ion-label>
+        <ion-input ></ion-input>
+      </ion-item>
     </ng-container>
 
     <!-- <ion-item class="indent" *ngIf="storage.settings.security.twofa">
