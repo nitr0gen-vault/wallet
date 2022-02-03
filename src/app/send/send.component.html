@@ -36,6 +36,7 @@
       <ion-label position="floating">To Address</ion-label>
       <ion-input
         (keyup)="checkAddress(address)"
+        (paste)="checkAddress(address)"
         placeholder="0x"
         [(ngModel)]="address"
         [ngStyle]="{ 'margin-right': canScan() ? '12px' : 'auto' }"

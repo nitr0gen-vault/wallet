@@ -29,6 +29,7 @@ export class SendComponent implements OnInit, OnDestroy {
   wallet: Wallet = { symbol: '' } as any; //quick hack
   amount: string;
   address: string;
+  internalAddress: string;
   twofa: string;
   twoPending = true;
   token: Token;
@@ -127,6 +128,49 @@ export class SendComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.address = this.amount = '';
     this.wallet = {} as any;
+  }
+
+  private async gassFreeChainIdSend(chainId: number) {
+    if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
+      this.loading = await this.loadingController.create({
+        message: 'Requesting Signature',
+      });
+
+      this.loading.present();
+
+      // Convert this.address to the nId
+
+
+      let txSig;
+      if (this.token) {
+        console.log("TOKEN NOT SUPPORTED, Also shouldn't got this far");        
+      } else {
+        let amount = new BigNumber(
+          parseFloat(this.amount) * ETH_DECIMAL
+        ).decimalPlaces(0);
+        txSig = {
+          to: this.internalAddress,
+          from: this.wallet.address,
+          amount: '0x' + amount.toString(16),        
+          chainId,
+        };
+      }
+
+      const result = await this.otk.gasFreePreflight(this.wallet.nId, txSig);
+
+      if (await this.noErrors(result)) {
+        const isTwoFa = result.$responses[0].twoFA;
+
+        this.loadingController.dismiss();
+        if (isTwoFa) {
+          this.getTwoFA(txSig, (r) => {
+            return r.hash;
+          }, true);
+        } else {
+          this.processGasFree(txSig, null);
+        }
+      }
+    }
   }
 
   private async chainIdSend(chainId: number) {
@@ -301,11 +345,18 @@ export class SendComponent implements OnInit, OnDestroy {
         console.log("Invite to Sending free " + this.network);
       }else{
         console.log("Sending free " + this.network);
+        if(this.token) {
+          alert("GAS FREE Token NOT Supported YET");
+          console.log("TOKEN NOT SUPPORTED");
+        }else{
+          await this.gassFreeChainIdSend(97);
+        }
+
       }
     }
   }
 
-  public getTwoFA(txSig: any, outputHash: Function): Promise<void> {
+  public getTwoFA(txSig: any, outputHash: Function, gasFree = false): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const alert = await this.alertController.create({
         header: 'Confirm 2FA',
@@ -328,7 +379,11 @@ export class SendComponent implements OnInit, OnDestroy {
           {
             text: 'Confirm',
             handler: async (a) => {
-              this.procressSign(txSig, a.twoFA, outputHash);
+              if(gasFree) {
+                this.processGasFree(txSig, a.twoFA);
+              }else{
+                this.procressSign(txSig, a.twoFA, outputHash);
+              }
             },
           },
         ],
@@ -336,6 +391,36 @@ export class SendComponent implements OnInit, OnDestroy {
 
       await alert.present();
     });
+  }
+
+  private async processGasFree(
+    txSig: any,
+    twoFa: string | null  ) {
+    this.loading = await this.loadingController.create({
+      message: 'Gas Free Transfer',
+    });
+    this.loading.present();
+
+    // Now send 2fa
+    const result = await this.otk.gasFreeSend(this.wallet.nId, txSig, twoFa);
+
+    if (await this.noErrors(result)) {
+      //const signatures = Object.values(
+      
+
+      this.loadingController.dismiss();
+
+      console.log(result);
+
+      // Clear
+      this.amount = '';
+      this.address = '';
+
+      // const txId = outputHash(reply);
+      // txId
+      //   ? await this.transactionCompleted(txId)
+      //   : await this.networkError(reply);
+    }
   }
 
   private async procressSign(
@@ -481,11 +566,15 @@ export class SendComponent implements OnInit, OnDestroy {
         )
       ) {
         // Valid address, We should see if it is an internal one for gas free transfers
-        if (await this.nitr0api.wallet.isInternal(address, this.network)) {
+        const internal = await this.nitr0api.wallet.isInternal(address, this.network)
+        console.log(internal);
+        if (internal) {
           console.log('Internal Address!');
+          this.internalAddress = internal.internal;
           this.addressIsInternal = this.gasFreeTransaction = true;
         } else {
           console.log('external Address :(');
+          this.internalAddress = null;
           this.addressIsInternal = this.gasFreeTransaction = false;
         }
       }

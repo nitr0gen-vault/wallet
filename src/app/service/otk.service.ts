@@ -53,6 +53,8 @@ export enum Nitr0gen {
   CloseCliam = '95191594af0ac9c197f0719bfce8d7f8788ef45e40133b841df3e143f4992cde',
   DiffConsensus = 'a9711259f9c0322c6eb1cca4c0baf1b460266be79c5c0f78cf1602a8476e0744',
   Preflight = '2a43dc59d4cfa0f8a5ad143247db41dd6524cc9e1a18fd7a00f14d0ca7bbac62',
+  GasFreePreflight = '67932904d4d92352a24ad21a9740f84b1dbdc4e2a5395dcc82667902dda2c8ee',
+  GasFreeSend = '1cd32ea19b1429ed709a6f4d66d03d8b89b281241c8c6f0ccd101c0571871e3f',
   Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b',
 }
 
@@ -816,6 +818,74 @@ export class OtkService {
 
     // Sign Transaction & Send
     return await this.nitr0api.wallet.preflight(
+      await txHandler.signTransaction(txBody, key)
+    );
+  }
+
+  public async gasFreePreflight(nId: string, signtx: unknown): Promise<any> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: IBaseTransaction = {
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.GasFreePreflight,
+        $i: {
+          owner: {
+            $stream: key.identity,
+            signtx,
+          },
+        },
+        $o: {
+          key: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return await this.nitr0api.wallet.preflight(
+      await txHandler.signTransaction(txBody, key)
+    );
+  }
+
+  public async gasFreeSend(
+    nId: string,
+    signtx: unknown,
+    twoFA: string
+  ): Promise<IBaseTransaction> {
+    const txHandler = new TransactionHandler();
+    const key = await this.getKey();
+
+    // Build Transaction
+    const txBody: any = {
+      $territoriality: 'b83b7b3c559e1aa636391dadda9fc60ba330cddc',
+      $tx: {
+        $namespace: Nitr0gen.Namespace,
+        $contract: Nitr0gen.GasFreeSend,
+        $i: {
+          owner: {
+            $stream: key.identity,
+            twoFA,
+            signtx,
+          },
+        },
+        $o: {
+          key: {
+            $stream: nId,
+          },
+        },
+      },
+      $sigs: {},
+      $selfsign: false,
+    };
+
+    // Sign Transaction & Send
+    return await this.nitr0api.wallet.sign(
       await txHandler.signTransaction(txBody, key)
     );
   }
