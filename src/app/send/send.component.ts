@@ -140,10 +140,9 @@ export class SendComponent implements OnInit, OnDestroy {
 
       // Convert this.address to the nId
 
-
       let txSig;
       if (this.token) {
-        console.log("TOKEN NOT SUPPORTED, Also shouldn't got this far");        
+        console.log("TOKEN NOT SUPPORTED, Also shouldn't got this far");
       } else {
         let amount = new BigNumber(
           parseFloat(this.amount) * ETH_DECIMAL
@@ -151,7 +150,7 @@ export class SendComponent implements OnInit, OnDestroy {
         txSig = {
           to: this.internalAddress,
           from: this.wallet.address,
-          amount: '0x' + amount.toString(16),        
+          amount: '0x' + amount.toString(16),
           chainId,
         };
       }
@@ -163,9 +162,13 @@ export class SendComponent implements OnInit, OnDestroy {
 
         this.loadingController.dismiss();
         if (isTwoFa) {
-          this.getTwoFA(txSig, (r) => {
-            return r.hash;
-          }, true);
+          this.getTwoFA(
+            txSig,
+            (r) => {
+              return r.hash;
+            },
+            true
+          );
         } else {
           this.processGasFree(txSig, null);
         }
@@ -311,8 +314,108 @@ export class SendComponent implements OnInit, OnDestroy {
     }
   }
 
+  private async basicAlert(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        // {
+        //   text: 'View',
+        //   cssClass: 'primary',
+        //   handler: async () => {
+        //     await Browser.open({
+        //       url: url,
+        //     });
+        //   },
+        // },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+        },
+      ],
+    });
+    await alert.present();
+  }
+
   public async send() {
+    /**
+     * Send from which balance?
+     * This question effects all type of transfer gas,free,new however our overall goal is to always reduce fees.
+     *
+     * You have 2 balances, your actual crypto balance and the balance from partitions.
+     * Your actual real balance maybe be redduced because it has been partitioned (like electrcity actual power real power)
+     *
+     * If the user opts to send using gas most the times the actual real balance should be used first. However we still need to
+     * check for partitions because we need to calculate the fee and make sure they are not sending beyond their acutal balance.
+     * This would be the same calculation if using partitioned balances because they need to cover the fee within their partition.
+     *
+     * The one exception to this "wanting to pay the fee" is if they happen to be sending the crypto to someone who that have already have partition
+     * ownership from. In this case as long as the partition balance its less or equal to the sending amount this partition should be used to reduce
+     * the fragmentation.
+     *
+     * Going gasless is simplier because of the no fee calcvuation (not including any use of no** tokens). Just need to aggregate their subparts to send
+     * the right total. Of course priority should be given to any subparts that are already from the intended receipent as above.
+     *
+     * new user, Does mean we need to know an email address. We would use a "tmp" key addres to hold onto the partition. When the user provides the email
+     * and the code this tmp key will either become theirs or we can do another internal partition transfer into their keys.
+     *
+     * As always the biggest "cost" is going to be multiple partitons paying gas fees. This is essentually the UTXO model. Which is where our own utility
+     * token could have value.
+     *
+     * So as this is phase 0 (getting to work, not performance biased design or even cost optimising) what needs to be done first
+     * is a basic selector which just selects the right balances and transfer.
+     *
+     * Real Balance - This is what the blockchain thinks the key hold
+     * Actual Real Balance - This is what they key really owns because of partition deduction.
+     *
+     */
+
+    // Lets select from up here as it could impact all 3 methods
+    // This code is duplicated everywhere, Needs to be normalised for all networks as well.
+    const actualSendAmount = new BigNumber(
+      parseFloat(this.amount) * ETH_DECIMAL
+    ).decimalPlaces(0);
+
+    let toSendAmount = new BigNumber(0);
+    const toSendAmountFrom = [];
+
+    // Lets not prevent tokens from working the old method
+    if (!this.token) {
+      // do we have enough aggregated balance
+      if (!this.wallet.amount.gte(actualSendAmount)) {
+        return await this.basicAlert('Error', 'Balance to low');
+      }
+
+      // Do we have partitions to send?
+      if (this.wallet.partitions.length) {
+        // Are we sending to someone we have a partition with
+        let partition;
+        if (
+          (partition = this.wallet.partitions.find(
+            (part) => part.id == this.internalAddress
+          ))
+        ) {
+          // We have some of their balance
+          console.log('OK - we share a partiton');
+          console.log(partition);
+          toSendAmount.plus(new BigNumber(partition.value));
+          toSendAmountFrom.push(partition);
+        }
+
+        // We may have a partition but it may not be enough to send.
+        if(!actualSendAmount.isEqualTo(toSendAmount)) {
+          // Loop avoiding the already spent partition 
+        }
+
+
+      }
+      return;
+    }
+
     if (!this.gasFreeTransaction) {
+      // These currently deal with real balance only. They just sign for the amount on the key
+      // Meaning right now 0 protection if you "own" some via a partion
       switch (this.network) {
         case 'ropsten':
           await this.chainIdSend(3);
@@ -340,23 +443,26 @@ export class SendComponent implements OnInit, OnDestroy {
           break;
       }
     } else {
-      if(this.gasFreeExternal) {
+      if (this.gasFreeExternal) {
         // Invite / Send Process TBD
-        console.log("Invite to Sending free " + this.network);
-      }else{
-        console.log("Sending free " + this.network);
-        if(this.token) {
-          alert("GAS FREE Token NOT Supported YET");
-          console.log("TOKEN NOT SUPPORTED");
-        }else{
+        console.log('Invite to Sending free ' + this.network);
+      } else {
+        console.log('Sending free ' + this.network);
+        if (this.token) {
+          alert('GAS FREE Token NOT Supported YET');
+          console.log('TOKEN NOT SUPPORTED');
+        } else {
           await this.gassFreeChainIdSend(97);
         }
-
       }
     }
   }
 
-  public getTwoFA(txSig: any, outputHash: Function, gasFree = false): Promise<void> {
+  public getTwoFA(
+    txSig: any,
+    outputHash: Function,
+    gasFree = false
+  ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const alert = await this.alertController.create({
         header: 'Confirm 2FA',
@@ -379,9 +485,9 @@ export class SendComponent implements OnInit, OnDestroy {
           {
             text: 'Confirm',
             handler: async (a) => {
-              if(gasFree) {
+              if (gasFree) {
                 this.processGasFree(txSig, a.twoFA);
-              }else{
+              } else {
                 this.procressSign(txSig, a.twoFA, outputHash);
               }
             },
@@ -393,9 +499,7 @@ export class SendComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async processGasFree(
-    txSig: any,
-    twoFa: string | null  ) {
+  private async processGasFree(txSig: any, twoFa: string | null) {
     this.loading = await this.loadingController.create({
       message: 'Processing Gasless Transfer',
     });
@@ -406,7 +510,7 @@ export class SendComponent implements OnInit, OnDestroy {
 
     if (await this.noErrors(result)) {
       console.log(result);
-      
+
       // Clear
       this.amount = '';
       this.address = '';
@@ -522,7 +626,7 @@ export class SendComponent implements OnInit, OnDestroy {
           'https://tronscan.org/?_ga=2.110927430.217637337.1632125473-1513070376.1631871841#/transaction/' +
           hash;
         break;
-    }    
+    }
 
     const alert = await this.alertController.create({
       header: 'Transaction Complete',
@@ -559,7 +663,10 @@ export class SendComponent implements OnInit, OnDestroy {
         )
       ) {
         // Valid address, We should see if it is an internal one for gas free transfers
-        const internal = await this.nitr0api.wallet.isInternal(address, this.network)
+        const internal = await this.nitr0api.wallet.isInternal(
+          address,
+          this.network
+        );
         console.log(internal);
         if (internal) {
           console.log('Internal Address!');
