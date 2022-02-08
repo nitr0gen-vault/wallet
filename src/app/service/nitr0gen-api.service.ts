@@ -194,6 +194,16 @@ class Wallet {
       })
     );
   }
+
+  public async gasfree(ntx: IBaseTransaction): Promise<any> {
+    return await lastValueFrom(
+      this.http.post<any>(`${environment.api.serverUrl}/wallet/gasfree`, {
+        ntx,
+      })
+    );
+  }
+
+  
 }
 
 type BitcoinNetwork = 'test' | 'main';

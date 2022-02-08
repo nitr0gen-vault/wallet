@@ -885,7 +885,7 @@ export class OtkService {
     };
 
     // Sign Transaction & Send
-    return await this.nitr0api.wallet.sign(
+    return await this.nitr0api.wallet.gasfree(
       await txHandler.signTransaction(txBody, key)
     );
   }

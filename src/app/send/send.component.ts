@@ -133,7 +133,7 @@ export class SendComponent implements OnInit, OnDestroy {
   private async gassFreeChainIdSend(chainId: number) {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
       this.loading = await this.loadingController.create({
-        message: 'Requesting Signature',
+        message: 'Preparing Gasless Transaction',
       });
 
       this.loading.present();
@@ -397,7 +397,7 @@ export class SendComponent implements OnInit, OnDestroy {
     txSig: any,
     twoFa: string | null  ) {
     this.loading = await this.loadingController.create({
-      message: 'Gas Free Transfer',
+      message: 'Processing Gasless Transfer',
     });
     this.loading.present();
 
@@ -405,21 +405,14 @@ export class SendComponent implements OnInit, OnDestroy {
     const result = await this.otk.gasFreeSend(this.wallet.nId, txSig, twoFa);
 
     if (await this.noErrors(result)) {
-      //const signatures = Object.values(
-      
-
-      this.loadingController.dismiss();
-
       console.log(result);
-
+      
       // Clear
       this.amount = '';
       this.address = '';
-
-      // const txId = outputHash(reply);
-      // txId
-      //   ? await this.transactionCompleted(txId)
-      //   : await this.networkError(reply);
+      await this.otk.refreshWallets(true);
+      this.loadingController.dismiss();
+      this.cancel();
     }
   }
 
@@ -529,7 +522,7 @@ export class SendComponent implements OnInit, OnDestroy {
           'https://tronscan.org/?_ga=2.110927430.217637337.1632125473-1513070376.1631871841#/transaction/' +
           hash;
         break;
-    }
+    }    
 
     const alert = await this.alertController.create({
       header: 'Transaction Complete',
