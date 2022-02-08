@@ -21,6 +21,12 @@ import { environment } from 'src/environments/environment';
 
 //export type Otk = IKey;
 
+interface Partition {
+  id:string; // nid
+  hex: string;
+  value: string;
+}
+
 export interface Otk extends IKey {
   biometrics?: boolean;
 }
@@ -32,6 +38,7 @@ export interface Wallet {
   nonce: number;
   chainId: number;
   hashes: string[];
+  partitions: Partition[]
   tokens: Token[];
   amount?: BigNumber;
   hidden?: boolean;
@@ -296,6 +303,7 @@ export class OtkService {
       nId: results.key.nId,
       address: results.key.address,
       hashes: results.hashes,
+      partitions: results.partitions || [],
       nonce: 0,
       chainId: results.chainId,
       tokens: results.tokens,
@@ -425,6 +433,7 @@ export class OtkService {
             async (balances) => {
               wallet.amount = balances.balance;
               wallet.nonce = balances.nonce;
+              wallet.partitions = balances.partitions;
 
               // Procress Tokens
               if (balances.tokens && wallet.tokens) {
@@ -544,6 +553,7 @@ export class OtkService {
     symbol: string
   ): Promise<{
     balance: BigNumber;
+    partitions: Partition[],
     nonce?: number;
     tokens?: any[];
   }> {
@@ -553,11 +563,13 @@ export class OtkService {
         result = await this.nitr0api.wallet.bitcoin.getAddress('test', address);
         return {
           balance: new BigNumber(result.balance),
+          partitions: result.partitions || []
         };
       case 'btc':
         result = await this.nitr0api.wallet.bitcoin.getAddress('main', address);
         return {
           balance: new BigNumber(result.balance),
+          partitions: result.partitions || []
         };
       case 'ropsten':
         result = await this.nitr0api.wallet.ethereum.getAddress(
@@ -568,6 +580,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       case 'eth':
         result = await this.nitr0api.wallet.ethereum.getAddress(
@@ -578,6 +591,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       case 'tbnb':
         result = await this.nitr0api.wallet.binance.getAddress('test', address);
@@ -585,6 +599,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       case 'bnb':
         result = await this.nitr0api.wallet.binance.getAddress('main', address);
@@ -592,22 +607,26 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       case 'trx':
         result = await this.nitr0api.wallet.tron.getAddress('main', address);
         return {
           balance: new BigNumber(result.balance),
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       case 'niles':
         result = await this.nitr0api.wallet.tron.getAddress('niles', address);
         return {
           balance: new BigNumber(result.balance),
           tokens: result.tokens,
+          partitions: result.partitions || []
         };
       default:
         return {
           balance: new BigNumber(0),
+          partitions: []
         };
     }
   }

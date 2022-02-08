@@ -380,6 +380,7 @@ export class SettingsPage implements OnInit {
                                 address: wallet.address,
                                 symbol: wallet.symbol,
                                 chainId: wallet.chainId,
+                                partitions: wallet.partitions || [], // Possibly Optional may need to fix
                                 nId: wallet.nId,
                                 nonce: 0,
                                 hashes: wallet.hashes,
