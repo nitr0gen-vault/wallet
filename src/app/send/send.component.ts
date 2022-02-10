@@ -14,7 +14,7 @@ import {
   BTC_DECIMAL,
 } from '../service/nitr0gen-api.service';
 import { Browser } from '@capacitor/browser';
-import { OtkService, Wallet, Token } from '../service/otk.service';
+import { OtkService, Wallet, Token, Partition } from '../service/otk.service';
 import { StorageService } from '../service/storage.service';
 import { BigNumber } from 'bignumber.js';
 import { AlertController, LoadingController, Platform } from '@ionic/angular';
@@ -130,7 +130,10 @@ export class SendComponent implements OnInit, OnDestroy {
     this.wallet = {} as any;
   }
 
-  private async gassFreeChainIdSend(chainId: number) {
+  private async gassFreeChainIdSend(
+    chainId: number,
+    toSendFrom?: { partition: Partition; value: BigNumber }[]
+  ) {
     if (await this.confirm(this.amount, this.wallet.symbol, this.address)) {
       this.loading = await this.loadingController.create({
         message: 'Preparing Gasless Transaction',
@@ -167,10 +170,11 @@ export class SendComponent implements OnInit, OnDestroy {
             (r) => {
               return r.hash;
             },
-            true
+            true,
+            toSendFrom
           );
         } else {
-          this.processGasFree(txSig, null);
+          this.processGasFree(txSig, null, toSendFrom);
         }
       }
     }
@@ -377,40 +381,96 @@ export class SendComponent implements OnInit, OnDestroy {
       parseFloat(this.amount) * ETH_DECIMAL
     ).decimalPlaces(0);
 
-    let toSendAmount = new BigNumber(0);
-    const toSendAmountFrom = [];
+    // "copy" to minus
+    let toSendAmount = new BigNumber(
+      parseFloat(this.amount) * ETH_DECIMAL
+    ).decimalPlaces(0);
+    const toSendAmountFrom: { partition: Partition; value: BigNumber }[] = [];
 
     // Lets not prevent tokens from working the old method
     if (!this.token) {
       // do we have enough aggregated balance
+      // If gas paying not this black and white fees based on how many inputs utxo
       if (!this.wallet.amount.gte(actualSendAmount)) {
         return await this.basicAlert('Error', 'Balance to low');
       }
 
       // Do we have partitions to send?
       if (this.wallet.partitions.length) {
+        // Source of funds
         // Are we sending to someone we have a partition with
-        let partition;
+        let sharedPartition: Partition;
         if (
-          (partition = this.wallet.partitions.find(
+          (sharedPartition = this.wallet.partitions.find(
             (part) => part.id == this.internalAddress
           ))
         ) {
           // We have some of their balance
-          console.log('OK - we share a partiton');
-          console.log(partition);
-          toSendAmount.plus(new BigNumber(partition.value));
-          toSendAmountFrom.push(partition);
+          console.log(sharedPartition);
+          const tmpBn = new BigNumber(sharedPartition.value);
+
+          if (tmpBn.gte(actualSendAmount)) {
+            // this covers it
+            toSendAmountFrom.push({
+              partition: sharedPartition,
+              value: actualSendAmount,
+            });
+            toSendAmount = toSendAmount.minus(actualSendAmount);
+          } else {
+            // Only partially covers
+            toSendAmountFrom.push({ partition: sharedPartition, value: tmpBn });
+            toSendAmount = toSendAmount.minus(tmpBn);
+          }
         }
 
         // We may have a partition but it may not be enough to send.
-        if(!actualSendAmount.isEqualTo(toSendAmount)) {
-          // Loop avoiding the already spent partition 
+        if (!toSendAmount.isZero()) {
+          // Loop avoiding the already spent partition
+          for (let i = 0; i < this.wallet.partitions.length; i++) {
+            const partition = this.wallet.partitions[i];
+
+            // Make sure we haven't used it yet
+            if (sharedPartition?.id !== partition.id) {
+              const tmpBn = new BigNumber(partition.value);
+
+              if (tmpBn.gte(toSendAmount)) {
+                // This covers it
+                toSendAmountFrom.push({
+                  partition,
+                  value: toSendAmount,
+                });
+                toSendAmount = toSendAmount.minus(toSendAmount);
+              } else {
+                // Still only partially covers
+                toSendAmountFrom.push({
+                  partition,
+                  value: tmpBn,
+                });
+                toSendAmount = toSendAmount.minus(tmpBn);
+              }
+            }
+
+            // Do we have enough!
+            if (toSendAmount.isZero()) {
+              break;
+            }
+          }
         }
 
-
+        if (toSendAmount.isZero()) {
+          // After loop still not enough real actual balance will be needed.
+          console.log('We have enough to send using these partitions :');
+          console.log(toSendAmountFrom);
+        } else {
+          console.log(
+            'We are missing ' +
+              toSendAmount.toString() +
+              ' but maybe our balnace is not partiotoned'
+          );
+          // this can still work use these as output and toSenAmount as balance to be partitioned
+          console.log(toSendAmountFrom);
+        }
       }
-      return;
     }
 
     if (!this.gasFreeTransaction) {
@@ -452,7 +512,7 @@ export class SendComponent implements OnInit, OnDestroy {
           alert('GAS FREE Token NOT Supported YET');
           console.log('TOKEN NOT SUPPORTED');
         } else {
-          await this.gassFreeChainIdSend(97);
+          await this.gassFreeChainIdSend(97, toSendAmountFrom);
         }
       }
     }
@@ -461,7 +521,8 @@ export class SendComponent implements OnInit, OnDestroy {
   public getTwoFA(
     txSig: any,
     outputHash: Function,
-    gasFree = false
+    gasFree = false,
+    toSendFrom?: { partition: Partition; value: BigNumber }[]
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const alert = await this.alertController.create({
@@ -486,7 +547,7 @@ export class SendComponent implements OnInit, OnDestroy {
             text: 'Confirm',
             handler: async (a) => {
               if (gasFree) {
-                this.processGasFree(txSig, a.twoFA);
+                this.processGasFree(txSig, a.twoFA, toSendFrom);
               } else {
                 this.procressSign(txSig, a.twoFA, outputHash);
               }
@@ -499,14 +560,18 @@ export class SendComponent implements OnInit, OnDestroy {
     });
   }
 
-  private async processGasFree(txSig: any, twoFa: string | null) {
+  private async processGasFree(
+    txSig: any,
+    twoFa: string | null,
+    toSendFrom?: { partition: Partition; value: BigNumber }[]
+  ) {
     this.loading = await this.loadingController.create({
       message: 'Processing Gasless Transfer',
     });
     this.loading.present();
 
     // Now send 2fa
-    const result = await this.otk.gasFreeSend(this.wallet.nId, txSig, twoFa);
+    const result = await this.otk.gasFreeSend(this.wallet.nId, txSig, twoFa, toSendFrom);
 
     if (await this.noErrors(result)) {
       console.log(result);

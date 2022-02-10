@@ -21,8 +21,8 @@ import { environment } from 'src/environments/environment';
 
 //export type Otk = IKey;
 
-interface Partition {
-  id:string; // nid
+export interface Partition {
+  id: string; // nid
   hex: string;
   value: string;
 }
@@ -38,7 +38,7 @@ export interface Wallet {
   nonce: number;
   chainId: number;
   hashes: string[];
-  partitions: Partition[]
+  partitions: Partition[];
   tokens: Token[];
   amount?: BigNumber;
   hidden?: boolean;
@@ -191,7 +191,7 @@ export class OtkService {
     })();
   }
 
-  public async hasAllWallets() {    
+  public async hasAllWallets() {
     // Instead of needing them all to load, Lets check for each one
     await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
     await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
@@ -213,10 +213,10 @@ export class OtkService {
     if (!(await this.walletHasSymbol(symbol))) {
       let w: Wallet;
       // Check for any open ones (not a security risk)
-      const open = await this.nitr0api.wallet.open(symbol) as Wallet;
+      const open = (await this.nitr0api.wallet.open(symbol)) as Wallet;
       if (open) {
         await this.loader('Claiming ' + symbol.toUpperCase() + ' Wallet');
-        if(this.attachWallet(open.nId)) {
+        if (this.attachWallet(open.nId)) {
           w = open;
         }
       } else {
@@ -553,7 +553,7 @@ export class OtkService {
     symbol: string
   ): Promise<{
     balance: BigNumber;
-    partitions: Partition[],
+    partitions: Partition[];
     nonce?: number;
     tokens?: any[];
   }> {
@@ -563,13 +563,13 @@ export class OtkService {
         result = await this.nitr0api.wallet.bitcoin.getAddress('test', address);
         return {
           balance: new BigNumber(result.balance),
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'btc':
         result = await this.nitr0api.wallet.bitcoin.getAddress('main', address);
         return {
           balance: new BigNumber(result.balance),
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'ropsten':
         result = await this.nitr0api.wallet.ethereum.getAddress(
@@ -580,7 +580,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'eth':
         result = await this.nitr0api.wallet.ethereum.getAddress(
@@ -591,7 +591,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'tbnb':
         result = await this.nitr0api.wallet.binance.getAddress('test', address);
@@ -599,7 +599,7 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'bnb':
         result = await this.nitr0api.wallet.binance.getAddress('main', address);
@@ -607,26 +607,26 @@ export class OtkService {
           balance: new BigNumber(result.balance),
           nonce: result.nonce,
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'trx':
         result = await this.nitr0api.wallet.tron.getAddress('main', address);
         return {
           balance: new BigNumber(result.balance),
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       case 'niles':
         result = await this.nitr0api.wallet.tron.getAddress('niles', address);
         return {
           balance: new BigNumber(result.balance),
           tokens: result.tokens,
-          partitions: result.partitions || []
+          partitions: result.partitions || [],
         };
       default:
         return {
           balance: new BigNumber(0),
-          partitions: []
+          partitions: [],
         };
     }
   }
@@ -875,10 +875,21 @@ export class OtkService {
   public async gasFreeSend(
     nId: string,
     signtx: unknown,
-    twoFA: string
+    twoFA: string,
+    toSendFrom?: { partition: Partition; value: BigNumber }[]
   ): Promise<IBaseTransaction> {
     const txHandler = new TransactionHandler();
     const key = await this.getKey();
+    let partitions = {};
+
+    if (toSendFrom?.length) {
+      for (let i = 0; i < toSendFrom.length; i++) {
+        const from = toSendFrom[i];
+        partitions[from.partition.id] = {
+          amount: '0x' + from.value.toString(16),
+        };
+      }
+    }
 
     // Build Transaction
     const txBody: any = {
@@ -897,6 +908,7 @@ export class OtkService {
           key: {
             $stream: nId,
           },
+          ...partitions,
         },
       },
       $sigs: {},
