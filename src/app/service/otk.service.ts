@@ -881,13 +881,20 @@ export class OtkService {
     const txHandler = new TransactionHandler();
     const key = await this.getKey();
     let partitions = {};
+    let keyAmount = null;
 
     if (toSendFrom?.length) {
       for (let i = 0; i < toSendFrom.length; i++) {
         const from = toSendFrom[i];
-        partitions[from.partition.id] = {
-          amount: '0x' + from.value.toString(16),
-        };
+
+        // skip key but add the amount to key
+        if(from.partition.id !== nId) {
+          partitions[from.partition.id] = {
+            amount: '0x' + from.value.toString(16),
+          };
+        }else{
+          keyAmount = '0x' + from.value.toString(16);
+        }
       }
     }
 
@@ -907,6 +914,7 @@ export class OtkService {
         $o: {
           key: {
             $stream: nId,
+            amount: keyAmount
           },
           ...partitions,
         },
@@ -914,6 +922,9 @@ export class OtkService {
       $sigs: {},
       $selfsign: false,
     };
+
+    //console.log(txBody);
+    //return;
 
     // Sign Transaction & Send
     return await this.nitr0api.wallet.gasfree(
@@ -1116,5 +1127,13 @@ export class OtkService {
         uuid
       )
     );
+  }
+
+  public async sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
   }
 }
