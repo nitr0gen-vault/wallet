@@ -888,11 +888,14 @@ export class OtkService {
         const from = toSendFrom[i];
 
         // skip key but add the amount to key
-        if(from.partition.id !== nId) {
-          partitions[from.partition.id] = {
-            amount: '0x' + from.value.toString(16),
-          };
-        }else{
+        if (from.partition.id !== nId) {
+          // reduce tx don't send empty moves!
+          if (from.value.gt(new BigNumber(0))) {
+            partitions[from.partition.id] = {
+              amount: '0x' + from.value.toString(16),
+            };
+          }
+        } else {
           keyAmount = '0x' + from.value.toString(16);
         }
       }
@@ -914,7 +917,7 @@ export class OtkService {
         $o: {
           key: {
             $stream: nId,
-            amount: keyAmount
+            amount: keyAmount,
           },
           ...partitions,
         },
@@ -922,9 +925,6 @@ export class OtkService {
       $sigs: {},
       $selfsign: false,
     };
-
-    //console.log(txBody);
-    //return;
 
     // Sign Transaction & Send
     return await this.nitr0api.wallet.gasfree(
