@@ -61,7 +61,8 @@ export class SendComponent implements OnInit, OnDestroy {
     const token = this.route.snapshot.params['token'];
     const wallets = await this.otk.getWallets();
 
-    wallets.forEach((wallet) => {
+    for (let i = 0; i < wallets.length; i++) {
+      const wallet = wallets[i];
       if (wallet.nId === id) {
         // Update token amount if token
         if (wallet.symbol !== token) {
@@ -70,12 +71,21 @@ export class SendComponent implements OnInit, OnDestroy {
           );
           this.network = wallet.symbol;
           this.wallet = { ...wallet, symbol: token, amount: this.token.amount };
+          // We need to copy it here to modify symbol and amount (or do naother way)
+          // so tokens will still have loading problems but coins should be fine!
+          // partitions will also run into this error when caching
         } else {
           this.network = wallet.symbol;
-          this.wallet = { ...wallet };
+          //this.wallet = { ...wallet };
+          this.wallet = wallet;
         }
       }
-    });
+    }
+
+    // Dev refresh hack fix
+    if (!this.wallet.amount?.dividedBy) {
+      (window as any).location = '/'; 
+    }
 
     switch (this.network) {
       case 'ropsten':
@@ -127,7 +137,7 @@ export class SendComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.address = this.amount = '';
-    this.wallet = {} as any;
+    this.wallet = { symbol: '' } as any;
   }
 
   private async gassFreeChainIdSend(
@@ -406,7 +416,7 @@ export class SendComponent implements OnInit, OnDestroy {
           ))
         ) {
           // We have some of their balance
-          console.log(sharedPartition);
+          //console.log(sharedPartition);
           const tmpBn = new BigNumber(sharedPartition.value);
 
           if (tmpBn.gte(actualSendAmount)) {
@@ -571,7 +581,12 @@ export class SendComponent implements OnInit, OnDestroy {
     this.loading.present();
 
     // Now send 2fa
-    const result = await this.otk.gasFreeSend(this.wallet.nId, txSig, twoFa, toSendFrom);
+    const result = await this.otk.gasFreeSend(
+      this.wallet.nId,
+      txSig,
+      twoFa,
+      toSendFrom
+    );
 
     if (await this.noErrors(result)) {
       console.log(result);
@@ -579,7 +594,34 @@ export class SendComponent implements OnInit, OnDestroy {
       // Clear
       this.amount = '';
       this.address = '';
-      await this.otk.refreshWallets(true);
+      const wallets = await this.otk.refreshWallets(true);
+
+      // Find wallet and cache into send page
+      // almost copy / paste, We are not using token but can use this.wallet.symbol as token should overwrite
+      // wallets.forEach((wallet) => {});
+      // foreach isn't awaitable, Should be fine but for now switched to for
+      for (let i = 0; i < wallets.length; i++) {
+        const wallet = wallets[i];
+        if (wallet.nId === this.wallet.nId) {
+          // Update token amount if token
+          if (wallet.symbol !== this.wallet.symbol) {
+            this.token = wallet.tokens.find(
+              (rToken) =>
+                this.wallet.symbol.toLowerCase() === rToken.symbol.toLowerCase()
+            );
+            this.network = wallet.symbol;
+            this.wallet = {
+              ...wallet,
+              symbol: this.wallet.symbol,
+              amount: this.token.amount,
+            };
+          } else {
+            this.network = wallet.symbol;
+            this.wallet = { ...wallet };
+          }
+        }
+      }
+
       this.loadingController.dismiss();
       this.cancel();
     }

@@ -477,6 +477,8 @@ export class OtkService {
         );
       }
       await Promise.all(promises);
+      // Update local with latest
+      // await this.storage.set('wallet', this.wallet);
       //this.fetching = false;
     }
   }
