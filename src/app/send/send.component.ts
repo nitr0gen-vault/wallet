@@ -84,7 +84,7 @@ export class SendComponent implements OnInit, OnDestroy {
 
     // Dev refresh hack fix
     if (!this.wallet.amount?.dividedBy) {
-      (window as any).location = '/'; 
+      (window as any).location = '/';
     }
 
     switch (this.network) {
@@ -397,88 +397,130 @@ export class SendComponent implements OnInit, OnDestroy {
     ).decimalPlaces(0);
     const toSendAmountFrom: { partition: Partition; value: BigNumber }[] = [];
 
+    // Gas fee will be the same for all partitions
+    // 21004 * gwei
+    console.log(this.fees[this.selectedFee]);
+    const transferCost = new BigNumber(this.fees[this.selectedFee]);
+    console.log(transferCost.toString());
+
     // Lets not prevent tokens from working the old method
     if (!this.token) {
-      // do we have enough aggregated balance
-      // If gas paying not this black and white fees based on how many inputs utxo
-      if (!this.wallet.amount.gte(actualSendAmount)) {
-        return await this.basicAlert('Error', 'Balance to low');
-      }
+      // Duplicate code inbound, Based on gas free vs gas paid. The reason for this way
+      // is to break down how each calculation works and where code can be saved.
+      if (!this.gasFreeTransaction) {
+        // Overall balance will be (partition-gas)partitions
+        let runningBalance = new BigNumber(0);
 
-      // Do we have partitions to send?
-      if (this.wallet.partitions.length) {
-        // Source of funds
-        // Are we sending to someone we have a partition with
-        let sharedPartition: Partition;
-        if (
-          (sharedPartition = this.wallet.partitions.find(
-            (part) => part.id == this.internalAddress
-          ))
-        ) {
-          // We have some of their balance
-          //console.log(sharedPartition);
-          const tmpBn = new BigNumber(sharedPartition.value);
-
-          if (tmpBn.gte(actualSendAmount)) {
-            // this covers it
-            toSendAmountFrom.push({
-              partition: sharedPartition,
-              value: actualSendAmount,
-            });
-            toSendAmount = toSendAmount.minus(actualSendAmount);
-          } else {
-            // Only partially covers
-            toSendAmountFrom.push({ partition: sharedPartition, value: tmpBn });
-            toSendAmount = toSendAmount.minus(tmpBn);
+        for (let i = 0; i < this.wallet.partitions.length; i++) {
+          const partition = this.wallet.partitions[i];
+          if (partition.hex !== '0x00') {
+            const balanceGasDeduct = new BigNumber(partition.hex).minus(
+              transferCost
+            );
+            console.log(new BigNumber(partition.hex).toString());
+            console.log(balanceGasDeduct.toString());
+            runningBalance = runningBalance.plus(balanceGasDeduct);
           }
         }
 
-        // We may have a partition but it may not be enough to send.
-        if (!toSendAmount.isZero()) {
-          // Loop avoiding the already spent partition
-          for (let i = 0; i < this.wallet.partitions.length; i++) {
-            const partition = this.wallet.partitions[i];
+        // now add if unpartitoned. Which we don't know
+        // Possibly we should always partition ourselves as it goes via "key"
+        // the ledger will work out what needs to move or not
+        
 
-            // Make sure we haven't used it yet
-            if (sharedPartition?.id !== partition.id) {
-              const tmpBn = new BigNumber(partition.value);
+        if (!runningBalance.gte(actualSendAmount)) {
+          return await this.basicAlert(
+            'Error',
+            'Balance to low - Max ' + runningBalance.div(ETH_DECIMAL).toString()
+          );
+        }
 
-              if (tmpBn.gte(toSendAmount)) {
-                // This covers it
-                toSendAmountFrom.push({
-                  partition,
-                  value: toSendAmount,
-                });
-                toSendAmount = toSendAmount.minus(toSendAmount);
-              } else {
-                // Still only partially covers
-                toSendAmountFrom.push({
-                  partition,
-                  value: tmpBn,
-                });
-                toSendAmount = toSendAmount.minus(tmpBn);
+
+      } else {
+        // do we have enough aggregated balance
+        // If gas paying not this black and white fees based on how many inputs utxo
+        if (!this.wallet.amount.gte(actualSendAmount)) {
+          return await this.basicAlert('Error', 'Balance to low');
+        }
+
+        // Do we have partitions to send?
+        if (this.wallet.partitions.length) {
+          // Source of funds
+          // Are we sending to someone we have a partition with
+          let sharedPartition: Partition;
+          if (
+            (sharedPartition = this.wallet.partitions.find(
+              (part) => part.id == this.internalAddress
+            ))
+          ) {
+            // We have some of their balance
+            //console.log(sharedPartition);
+            const tmpBn = new BigNumber(sharedPartition.value);
+
+            if (tmpBn.gte(actualSendAmount)) {
+              // this covers it
+              toSendAmountFrom.push({
+                partition: sharedPartition,
+                value: actualSendAmount,
+              });
+              toSendAmount = toSendAmount.minus(actualSendAmount);
+            } else {
+              // Only partially covers
+              toSendAmountFrom.push({
+                partition: sharedPartition,
+                value: tmpBn,
+              });
+              toSendAmount = toSendAmount.minus(tmpBn);
+            }
+          }
+
+          // We may have a partition but it may not be enough to send.
+          if (!toSendAmount.isZero()) {
+            // Loop avoiding the already spent partition
+            for (let i = 0; i < this.wallet.partitions.length; i++) {
+              const partition = this.wallet.partitions[i];
+
+              // Make sure we haven't used it yet
+              if (sharedPartition?.id !== partition.id) {
+                const tmpBn = new BigNumber(partition.value);
+
+                if (tmpBn.gte(toSendAmount)) {
+                  // This covers it
+                  toSendAmountFrom.push({
+                    partition,
+                    value: toSendAmount,
+                  });
+                  toSendAmount = toSendAmount.minus(toSendAmount);
+                } else {
+                  // Still only partially covers
+                  toSendAmountFrom.push({
+                    partition,
+                    value: tmpBn,
+                  });
+                  toSendAmount = toSendAmount.minus(tmpBn);
+                }
+              }
+
+              // Do we have enough!
+              if (toSendAmount.isZero()) {
+                break;
               }
             }
-
-            // Do we have enough!
-            if (toSendAmount.isZero()) {
-              break;
-            }
           }
-        }
 
-        if (toSendAmount.isZero()) {
-          // After loop still not enough real actual balance will be needed.
-          console.log('We have enough to send using these partitions :');
-          console.log(toSendAmountFrom);
-        } else {
-          console.log(
-            'We are missing ' +
-              toSendAmount.toString() +
-              ' but maybe our balnace is not partiotoned'
-          );
-          // this can still work use these as output and toSenAmount as balance to be partitioned
-          console.log(toSendAmountFrom);
+          if (toSendAmount.isZero()) {
+            // After loop still not enough real actual balance will be needed.
+            console.log('We have enough to send using these partitions :');
+            console.log(toSendAmountFrom);
+          } else {
+            console.log(
+              'We are missing ' +
+                toSendAmount.toString() +
+                ' but maybe our balnace is not partiotoned'
+            );
+            // this can still work use these as output and toSenAmount as balance to be partitioned
+            console.log(toSendAmountFrom);
+          }
         }
       }
     }
