@@ -7,7 +7,8 @@ export const environment = {
   browser: false,
   version: 'dev-2.2.0',
   api: {
-    serverUrl: 'http://localhost:7000',
+    //serverUrl: 'http://localhost:7000',
+    serverUrl: 'https://nitr0gen.oa.r.appspot.com',
     //serverUrl: 'https://wallet-dot-notabox.nw.r.appspot.com',
   },
 };

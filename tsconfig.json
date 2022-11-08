@@ -12,7 +12,7 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2015",
+    "target": "es2020",
     "module": "es2020",
     "lib": ["es2018", "dom"],
     "paths": {
@@ -23,6 +23,7 @@
       "stream": ["./node_modules/stream-browserify"],
       "buffer": ["./node_modules/buffer"],
       "assert": ["./node_modules/assert"],
+      "url": ["./empty"],
       "process": ["./empty"],
       "vm": ["./empty"],
       "fs": ["./empty"]
