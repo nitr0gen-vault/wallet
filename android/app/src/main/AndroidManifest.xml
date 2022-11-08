@@ -17,6 +17,7 @@
           android:resource="@drawable/ic_stat_n" />
 
         <activity
+            android:exported="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name="com.nitr0gen.prelaunch.MainActivity"
             android:label="@string/title_activity_main"
