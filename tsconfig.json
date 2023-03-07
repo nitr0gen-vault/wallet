@@ -2,7 +2,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    // Can be removed when Ionicons in @ionic/core is v6
     "skipLibCheck": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
@@ -12,22 +11,48 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2020",
+    "target": "ES2022",
     "module": "es2020",
-    "lib": ["es2018", "dom"],
+    "lib": [
+      "es2018",
+      "dom"
+    ],
     "paths": {
-      "crypto": ["./node_modules/crypto-browserify"],
-      "constants": ["./node_modules/constants-browserify"],
-      "http": ["./node_modules/stream-http"],
-      "https": ["./node_modules/https-browserify"],
-      "stream": ["./node_modules/stream-browserify"],
-      "buffer": ["./node_modules/buffer"],
-      "assert": ["./node_modules/assert"],
-      "url": ["./empty"],
-      "process": ["./empty"],
-      "vm": ["./empty"],
-      "fs": ["./empty"]
-    }
+      "crypto": [
+        "./node_modules/crypto-browserify"
+      ],
+      "constants": [
+        "./node_modules/constants-browserify"
+      ],
+      "http": [
+        "./node_modules/stream-http"
+      ],
+      "https": [
+        "./node_modules/https-browserify"
+      ],
+      "stream": [
+        "./node_modules/stream-browserify"
+      ],
+      "buffer": [
+        "./node_modules/buffer"
+      ],
+      "assert": [
+        "./node_modules/assert"
+      ],
+      "url": [
+        "./empty"
+      ],
+      "process": [
+        "./empty"
+      ],
+      "vm": [
+        "./empty"
+      ],
+      "fs": [
+        "./empty"
+      ]
+    },
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
