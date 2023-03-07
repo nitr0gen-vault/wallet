@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GetResult, Storage } from '@capacitor/storage';
+import { Preferences } from '@capacitor/preferences';
 
 export interface Settings {
   general: {
@@ -19,6 +19,20 @@ export interface Settings {
   providedIn: 'root',
 })
 export class StorageService {
+  private _settings: Settings = {
+    general: {
+      email: '',
+      telephone: '',
+    },
+    security: {
+      twofa: false,
+      freeze: false,
+    },
+    recovery: {
+      email: '',
+    },
+  };
+
   constructor() {
     (async () => {
       this.settings = (await this.get('settings', {
@@ -42,7 +56,8 @@ export class StorageService {
   }
 
   public async get(key: string, defaultValue?: any): Promise<any> {
-    const stored = (await Storage.get({ key: this.profileObscure(key) })).value;
+    const stored = (await Preferences.get({ key: this.profileObscure(key) }))
+      .value;
     if (stored) {
       return JSON.parse(stored);
     } else {
@@ -51,25 +66,12 @@ export class StorageService {
   }
 
   public async set(key: string, value: any): Promise<void> {
-    return Storage.set({
+    return Preferences.set({
       key: this.profileObscure(key),
       value: JSON.stringify(value),
     });
   }
 
-  private _settings: Settings = {
-    general: {
-      email: '',
-      telephone: '',
-    },
-    security: {
-      twofa: false,
-      freeze: false,
-    },
-    recovery: {
-      email: '',
-    },
-  };
   public get settings(): Settings {
     return this._settings;
   }
@@ -84,6 +86,6 @@ export class StorageService {
   }
 
   public async reset() {
-    await Storage.clear();
+    await Preferences.clear();
   }
 }
