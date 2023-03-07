@@ -194,7 +194,7 @@ export class OtkService {
   public async hasAllWallets() {
     // Instead of needing them all to load, Lets check for each one
     await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
-    await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
+    //await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
     await this.bootstrapWallet(environment.production ? 'bnb' : 'tbnb');
     await this.bootstrapWallet(environment.production ? 'trx' : 'niles');
 

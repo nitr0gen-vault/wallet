@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-for-of */
+/* eslint-disable @typescript-eslint/member-ordering */
 import {
   BarcodeScanner,
   SupportedFormat,
@@ -410,32 +412,37 @@ export class SendComponent implements OnInit, OnDestroy {
       if (!this.gasFreeTransaction) {
         // Overall balance will be (partition-gas)partitions
         let runningBalance = new BigNumber(0);
+        console.log(this.wallet);
 
-        for (let i = 0; i < this.wallet.partitions.length; i++) {
-          const partition = this.wallet.partitions[i];
-          if (partition.hex !== '0x00') {
-            const balanceGasDeduct = new BigNumber(partition.hex).minus(
-              transferCost
-            );
-            console.log(new BigNumber(partition.hex).toString());
-            console.log(balanceGasDeduct.toString());
-            runningBalance = runningBalance.plus(balanceGasDeduct);
+        if (this.wallet.partitions.length) {
+          for (let i = 0; i < this.wallet.partitions.length; i++) {
+            const partition = this.wallet.partitions[i];
+            if (partition.hex !== '0x00') {
+              const balanceGasDeduct = new BigNumber(partition.hex).minus(
+                transferCost
+              );
+              console.log(new BigNumber(partition.hex).toString());
+              console.log(balanceGasDeduct.toString());
+              runningBalance = runningBalance.plus(balanceGasDeduct);
+            }
           }
+        } else {
+          runningBalance = this.wallet.amount;
         }
 
         // now add if unpartitoned. Which we don't know
         // Possibly we should always partition ourselves as it goes via "key"
         // the ledger will work out what needs to move or not
-        
 
         if (!runningBalance.gte(actualSendAmount)) {
+          console.log(
+            `Running : ${runningBalance} = Actual Send ${actualSendAmount}`
+          );
           return await this.basicAlert(
             'Error',
             'Balance to low - Max ' + runningBalance.div(ETH_DECIMAL).toString()
           );
         }
-
-
       } else {
         // do we have enough aggregated balance
         // If gas paying not this black and white fees based on how many inputs utxo
