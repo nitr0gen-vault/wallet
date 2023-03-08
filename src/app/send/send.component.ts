@@ -232,18 +232,22 @@ export class SendComponent implements OnInit, OnDestroy {
       const result = await this.otk.preflight(this.wallet.nId, txSig);
 
       if (await this.noErrors(result)) {
-        const isTwoFa = result.$responses[0].twoFA;
+        //testnet fixes
+        console.log('Waiting 1500');
+        setTimeout(() => {
+          const isTwoFa = result.$responses[0].twoFA;
 
-        this.loadingController.dismiss();
-        if (isTwoFa) {
-          this.getTwoFA(txSig, (r) => {
-            return r.hash;
-          });
-        } else {
-          this.procressSign(txSig, null, (r) => {
-            return r.hash;
-          });
-        }
+          this.loadingController.dismiss();
+          if (isTwoFa) {
+            this.getTwoFA(txSig, (r) => {
+              return r.hash;
+            });
+          } else {
+            this.procressSign(txSig, null, (r) => {
+              return r.hash;
+            });
+          }
+        }, 1500);
       }
     }
   }
@@ -846,7 +850,7 @@ export class SendComponent implements OnInit, OnDestroy {
         break;
       case 'tbnb':
       case 'bnb':
-        message = 'Unknown Error';
+        message = reply.reason ? reply.reason : 'Unknown Error';
         break;
       case 'ropsten':
       case 'eth':

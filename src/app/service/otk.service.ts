@@ -53,7 +53,7 @@ export interface Token {
   hidden?: boolean;
 }
 
-export enum Nitr0gen {
+export enum Nitr0genLive {
   Namespace = 'notabox.keys',
   Onboard = 'df9e4e242c58cc6a03ca1679f007c7a04cad72c97fdb74bdfe9a4e1688077a79',
   Create = 'c278818b9f10d5f18381a711827e344d583f7ecf446cdfb4b92016b308838a72',
@@ -63,6 +63,18 @@ export enum Nitr0gen {
   GasFreePreflight = '67932904d4d92352a24ad21a9740f84b1dbdc4e2a5395dcc82667902dda2c8ee',
   GasFreeSend = '1cd32ea19b1429ed709a6f4d66d03d8b89b281241c8c6f0ccd101c0571871e3f',
   Sign = 'f155dee677c1c2d661715d6b99e976f54534ae92bc6b73f5483e0ba08ea4f78b',
+}
+
+export enum Nitr0gen {
+  Namespace = 'awt',
+  Onboard = 'ba389fdbb0e4aaa93d4ad40c3594f997f6e1e3acb18ca1b48c6de72a184235a6',
+  Create = 'c3d59c066f4e6a5e410b0863aa3a1f1a374d0fed587492326d84eb0499aff691',
+  CloseCliam = '',
+  DiffConsensus = 'c3d59c066f4e6a5e410b0863aa3a1f1a374d0fed587492326d84eb0499aff691',
+  Preflight = 'ca0766e75629cfe947cfa6261d154d0a64427020fac9eb32a8bb0373338cefbe',
+  GasFreePreflight = '87978acd70f8bfbd0f1529b61123a46a2ca9a39df18c03d1d87377d12244d212',
+  GasFreeSend = '4ebe0253e2d66e8b356937b3bceb4bfdbff82c77cedd6bc3e7a8d27668213db5',
+  Sign = 'f4033c84fd2d677271133637e94a5357b977d97049f2d1494cfe9fe40f2b5492',
 }
 
 @Injectable({
@@ -193,10 +205,10 @@ export class OtkService {
 
   public async hasAllWallets() {
     // Instead of needing them all to load, Lets check for each one
-    await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
+    //await this.bootstrapWallet(environment.production ? 'btc' : 'tbtc');
     //await this.bootstrapWallet(environment.production ? 'eth' : 'ropsten');
     await this.bootstrapWallet(environment.production ? 'bnb' : 'tbnb');
-    await this.bootstrapWallet(environment.production ? 'trx' : 'niles');
+    //await this.bootstrapWallet(environment.production ? 'trx' : 'niles');
 
     if (environment.production) {
       // Keep Solidity testnets for now (Can hide in app)
@@ -944,7 +956,7 @@ export class OtkService {
 
     // Build Transaction
     const txBody: any = {
-      $territoriality: 'b83b7b3c559e1aa636391dadda9fc60ba330cddc',
+      $territoriality: 'c03ed15c2156d3f910abd5e959c411e00e2f6478',
       $tx: {
         $namespace: Nitr0gen.Namespace,
         $contract: Nitr0gen.Sign,
