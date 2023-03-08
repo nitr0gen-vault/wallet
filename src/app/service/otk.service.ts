@@ -135,7 +135,7 @@ export class OtkService {
           // Authenticate before using the credentials
           try {
             const bioVerify = await NativeBiometric.verifyIdentity({
-              reason: 'Gain your access right to Nitr0gen Vault Services',
+              reason: 'Gain your access right to AWT-TN Vault Services',
               title: 'Nitr0gen Authenticate',
               subtitle: 'Unlock your OTK',
               //description: '',

@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.nitr0gen.prelaunch',
-  appName: 'Nitr0gen Vault',
+  appId: 'com.nitr0gen.awt',
+  appName: 'AWT-TN Vault',
   webDir: 'www',
   bundledWebRuntime: false
 };
