@@ -1,4 +1,4 @@
-package com.nitr0gen.prelaunch;
+package com.nitr0gen.awt;
 
 import com.getcapacitor.BridgeActivity;
 import android.content.res.Configuration;
